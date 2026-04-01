@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <script>
+        window.FontAwesomeConfig = {
+          autoReplaceSvg: 'nest'
+        };
+      </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfólio de Projetos - 5C eficiencia governamental</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E293B',
+                        secondary: '#334155',
+                        tertiary: '#F8FAFC',
+                        accent: '#3B82F6',
+                        'light-bg': '#F1F5F9',
+                        'purple-brand': '#8B5CF6',
+                        'blue-brand': '#2563EB',
+                        'teal-brand': '#0D9488',
+                        'success': '#10B981',
+                        'success-light': '#D1FAE5',
+                        'warning': '#F59E0B',
+                        'warning-light': '#FEF3C7',
+                        'danger': '#EF4444',
+                        'danger-light': '#FEE2E2',
+                        'info': '#3B82F6',
+                        'info-light': '#DBEAFE',
+                        'neutral-light': '#F3F4F6'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0,0,0,0.05)',
+                        'card': '0 10px 30px -5px rgba(0,0,0,0.08)',
+                        'inner-light': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: #F8FAFC;
+        }
+        ::-webkit-scrollbar { display: none; }
+        
+        .sidebar-item.active {
+            background-color: #F1F5F9;
+            color: #2563EB;
+            border-right: 3px solid #2563EB;
+            font-weight: 600;
+        }
+        .sidebar-item:hover:not(.active) {
+            background-color: #F8FAFC;
+        }
+        
+        /* Custom Checkbox */
+        .custom-checkbox {
+            appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.15em;
+            height: 1.15em;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 0.25em;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+        }
+        .custom-checkbox::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox:checked {
+            background-color: #2563EB;
+            border-color: #2563EB;
+        }
+        .custom-checkbox:checked::before {
+            transform: scale(1);
+        }
+
+        /* Progress Bar Base */
+        .progress-base {
+            background-color: #E2E8F0;
+            border-radius: 9999px;
+            height: 6px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-tertiary text-secondary">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex h-full z-20 shadow-soft">
+        <div class="p-6 flex items-center gap-3 border-b border-gray-100">
+            <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-md">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+                    <span class="text-xl font-bold tracking-tight text-primary">5C eficiencia governamental</span>
+        </div>
+
+        <div class="p-4">
+            <div class="bg-light-bg rounded-lg p-3 flex items-center gap-3 border border-gray-200">
+                <div class="w-8 h-8 rounded-md bg-purple-100 text-purple-600 flex items-center justify-center text-sm flex-shrink-0">
+                    <i class="fa-solid fa-city"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-semibold text-gray-900 truncate">Prefeitura Municipal</p>
+                    <p class="text-[10px] text-gray-500 truncate">Gabinete do Prefeito</p>
+                </div>
+                <button class="text-gray-400 hover:text-primary transition-colors">
+                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li>
+                    <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 transition-colors">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                        Dashboard Estratégico
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item active flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors">
+                        <i class="fa-solid fa-folder-open w-5 text-center"></i>
+                        Portfólio de Projetos
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 transition-colors">
+                        <i class="fa-solid fa-network-wired w-5 text-center"></i>
+                        Dependências
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 transition-colors">
+                        <i class="fa-solid fa-timeline w-5 text-center"></i>
+                        Execução
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 transition-colors">
+                        <i class="fa-solid fa-triangle-exclamation w-5 text-center"></i>
+                        Central de Alertas
+                    </a>
+                </li>
+            </ul>
+
+            <div class="px-6 mt-8 mb-2">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Administração</h3>
+            </div>
+            <ul class="space-y-1">
+                <li>
+                    <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 transition-colors">
+                        <i class="fa-solid fa-users-gear w-5 text-center"></i>
+                        Usuários & Perfis
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 transition-colors">
+                        <i class="fa-solid fa-gear w-5 text-center"></i>
+                        Configurações
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="p-4 border-t border-gray-200">
+            <div class="flex items-center gap-3">
+                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="User" class="w-10 h-10 rounded-full border border-gray-200">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 truncate">Carlos Silva</p>
+                    <p class="text-xs text-gray-500 truncate">Gestor Geral</p>
+                </div>
+                <button class="text-gray-400 hover:text-danger transition-colors">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden bg-tertiary">
+        
+        <!-- Header -->
+        <header id="header" class="bg-white border-b border-gray-200 py-4 px-6 md:px-8 flex items-center justify-between z-10 shadow-sm">
+            <div class="flex items-center gap-4">
+                <button class="md:hidden text-gray-500 hover:text-primary">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-brand flex items-center justify-center">
+                        <i class="fa-solid fa-folder-open"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-primary leading-tight">Portfólio de Projetos</h1>
+                        <p class="text-xs text-gray-500">Gerencie, acompanhe e coordene as iniciativas do município.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="relative hidden sm:block">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-gray-400 text-sm"></i>
+                    </div>
+                    <input type="text" placeholder="Buscar projeto, responsável..." class="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none w-72 bg-gray-50 focus:bg-white transition-all">
+                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                        <span class="text-[10px] font-medium text-gray-400 border border-gray-200 rounded px-1.5 py-0.5 bg-white">⌘K</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2 border-l border-gray-200 pl-4">
+                    <button class="relative p-2 text-gray-500 hover:text-primary transition-colors hover:bg-gray-100 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </button>
+                    <button class="relative p-2 text-gray-500 hover:text-primary transition-colors hover:bg-gray-100 rounded-lg flex items-center justify-center">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full border border-white"></span>
+                    </button>
+                    <button class="flex items-center gap-2 bg-blue-brand hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ml-2">
+                        <i class="fa-solid fa-plus"></i> Novo Projeto
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-6 md:p-8">
+            
+            <!-- View Controls & Advanced Filters -->
+            <section id="portfolio-controls" class="mb-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                
+                <!-- View Tabs -->
+                <div class="flex items-center bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+                    <button class="px-4 py-1.5 text-sm font-medium rounded-md bg-blue-50 text-blue-brand flex items-center gap-2">
+                        <i class="fa-solid fa-list-ul"></i> Lista
+                    </button>
+                    <button class="px-4 py-1.5 text-sm font-medium rounded-md text-gray-600 hover:text-primary hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                        <i class="fa-solid fa-chart-gantt"></i> Gantt
+                    </button>
+                    <button class="px-4 py-1.5 text-sm font-medium rounded-md text-gray-600 hover:text-primary hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                        <i class="fa-solid fa-border-all"></i> Kanban
+                    </button>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                    <div class="flex items-center gap-2 border-r border-gray-200 pr-2">
+                        <button class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-colors">
+                            <i class="fa-solid fa-filter text-gray-400"></i> Filtros
+                            <span class="bg-blue-100 text-blue-brand text-[10px] px-1.5 py-0.5 rounded-full font-bold">2</span>
+                        </button>
+                        <button class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-colors">
+                            <i class="fa-solid fa-arrow-up-wide-short text-gray-400"></i> Ordenar
+                        </button>
+                        <button class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-colors">
+                            <i class="fa-solid fa-columns text-gray-400"></i> Colunas
+                        </button>
+                    </div>
+                    <div class="pl-1 flex gap-2">
+                        <button class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-colors" title="Exportar">
+                            <i class="fa-solid fa-download text-gray-500"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Active Filters Display (Optional/Collapsible) -->
+            <section id="active-filters" class="mb-6 flex flex-wrap gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white border border-gray-200 shadow-sm text-gray-700">
+                    <span class="text-gray-400">Secretaria:</span> Saúde, Educação
+                    <button class="ml-1 text-gray-400 hover:text-danger"><i class="fa-solid fa-xmark"></i></button>
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white border border-gray-200 shadow-sm text-gray-700">
+                    <span class="text-gray-400">Status:</span> Em Andamento, Atrasado
+                    <button class="ml-1 text-gray-400 hover:text-danger"><i class="fa-solid fa-xmark"></i></button>
+                </span>
+                <button class="text-xs font-medium text-blue-brand hover:underline px-2 py-1">Limpar filtros</button>
+            </section>
+
+            <!-- Projects Data Table -->
+            <section id="projects-table-grid" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                
+                <!-- Table Group Header -->
+                <div class="bg-gray-50/80 px-4 py-3 border-b border-gray-200 flex items-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
+                    <h3 class="text-sm font-semibold text-primary">Projetos Estratégicos (Alta Criticidade)</h3>
+                    <span class="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">4</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[1000px]">
+                        <thead>
+                            <tr class="border-b border-gray-200 bg-white">
+                                <th class="p-4 w-12 text-center">
+                                    <input type="checkbox" class="custom-checkbox">
+                                </th>
+                                <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Projeto</th>
+                                <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Secretaria</th>
+                                <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Responsável</th>
+                                <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+                                <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap w-48">Progresso</th>
+                                <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Prazo</th>
+                                <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Orçamento</th>
+                                <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 text-sm">
+                            <!-- Row 1 -->
+                            <tr class="hover:bg-blue-50/30 transition-colors group">
+                                <td class="p-4 text-center">
+                                    <input type="checkbox" class="custom-checkbox">
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                                            <i class="fa-solid fa-hospital"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-primary group-hover:text-blue-brand transition-colors cursor-pointer">Novo Hospital Municipal</p>
+                                            <p class="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5">
+                                                <i class="fa-solid fa-link text-gray-400"></i> 2 dependências
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                                        Saúde
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center gap-2" title="Dra. Ana Costa">
+                                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-1.jpg" alt="Ana" class="w-7 h-7 rounded-full border border-gray-200">
+                                        <span class="text-gray-700 text-sm truncate max-w-[100px]">Ana Costa</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-warning-light text-warning border border-warning/20">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-warning"></span> Em Risco
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="progress-base">
+                                            <div class="progress-fill bg-warning" style="width: 45%;"></div>
+                                        </div>
+                                        <span class="text-xs font-medium text-gray-700 w-8 text-right">45%</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="text-gray-700">15 Dez 2024</div>
+                                    <div class="text-[11px] text-warning font-medium mt-0.5">Atraso de 12 dias</div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="text-gray-700 font-medium">R$ 45.2M</div>
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    <button class="p-1.5 text-gray-400 hover:text-primary rounded-md hover:bg-gray-100 transition-colors">
+                                        <i class="fa-solid fa-ellipsis"></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Row 2 -->
+                            <tr class="hover:bg-blue-50/30 transition-colors group">
+                                <td class="p-4 text-center">
+                                    <input type="checkbox" class="custom-checkbox">
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded bg-teal-100 text-teal-600 flex items-center justify-center flex-shrink-0">
+                                            <i class="fa-solid fa-school"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-primary group-hover:text-blue-brand transition-colors cursor-pointer">Complexo Educacional Zona Sul</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                                        Educação
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center gap-2">
+                                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg" alt="Carlos" class="w-7 h-7 rounded-full border border-gray-200">
+                                        <span class="text-gray-700 text-sm truncate max-w-[100px]">Carlos M.</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-success-light text-success border border-success/20">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-success"></span> No Prazo
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="progress-base">
+                                            <div class="progress-fill bg-success" style="width: 78%;"></div>
+                                        </div>
+                                        <span class="text-xs font-medium text-gray-700 w-8 text-right">78%</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="text-gray-700">30 Nov 2024</div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="text-gray-700 font-medium">R$ 12.8M</div>
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    <button class="p-1.5 text-gray-400 hover:text-primary rounded-md hover:bg-gray-100 transition-colors">
+                                        <i class="fa-solid fa-ellipsis"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="border-t border-gray-200 px-4 py-3 bg-white flex items-center justify-between">
+                    <div class="text-sm text-gray-500">
+                        Mostrando <span class="font-medium text-gray-700">1</span> a <span class="font-medium text-gray-700">10</span> de <span class="font-medium text-gray-700">42</span> projetos
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Anterior</button>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-md bg-blue-brand text-white text-sm font-medium">1</button>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium">2</button>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium">3</button>
+                        <span class="text-gray-500 px-1">...</span>
+                        <button class="px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Próxima</button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Overlay / Drawer for Project Details (Hidden by default, structure provided for context) -->
+    <!-- 
+    <div class="fixed inset-0 bg-black/30 z-40 hidden"></div>
+    <div id="project-details-drawer" class="fixed inset-y-0 right-0 w-[600px] bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-primary">Detalhes do Projeto</h2>
+            <button class="text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6">...</div>
+    </div>
+    -->
+
+    <script>
+        window.__MVP_FLOW__ = { type: 'suite', role: 'admin' };
+    </script>
+    <script src="mvp-flow.js"></script>
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <script>
+        window.FontAwesomeConfig = {
+          autoReplaceSvg: 'nest'
+        };
+      </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Estratégico - 5C eficiencia governamental</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-3.1.1.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E293B',
+                        secondary: '#334155',
+                        tertiary: '#F8FAFC',
+                        accent: '#3B82F6',
+                        'light-bg': '#F1F5F9',
+                        'purple-brand': '#8B5CF6',
+                        'blue-brand': '#2563EB',
+                        'teal-brand': '#0D9488',
+                        'success': '#10B981',
+                        'warning': '#F59E0B',
+                        'danger': '#EF4444',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0,0,0,0.05)',
+                        'card': '0 10px 30px -5px rgba(0,0,0,0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: #F8FAFC;
+        }
+        ::-webkit-scrollbar { display: none; }
+        .sidebar-item.active {
+            background-color: #F1F5F9;
+            color: #2563EB;
+            border-right: 3px solid #2563EB;
+        }
+        .sidebar-item:hover:not(.active) {
+            background-color: #F8FAFC;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-tertiary text-secondary">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex h-full z-20 shadow-soft">
+        <div class="p-6 flex items-center gap-3 border-b border-gray-100">
+            <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-md">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+                    <span class="text-xl font-bold tracking-tight text-primary">5C eficiencia governamental</span>
+        </div>
+
+        <div class="p-4">
+            <div class="bg-light-bg rounded-lg p-3 flex items-center gap-3 border border-gray-200">
+                <div class="w-8 h-8 rounded-md bg-purple-100 text-purple-600 flex items-center justify-center text-sm flex-shrink-0">
+                    <i class="fa-solid fa-city"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-semibold text-gray-900 truncate">Prefeitura Municipal</p>
+                    <p class="text-[10px] text-gray-500 truncate">Gabinete do Prefeito</p>
+                </div>
+                <button class="text-gray-400 hover:text-primary transition-colors">
+                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li>
+                    <a href="#" class="sidebar-item active flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                        Dashboard Estratégico
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 transition-colors">
+                        <i class="fa-solid fa-folder-open w-5 text-center"></i>
+                        Portfólio de Projetos
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 transition-colors">
+                        <i class="fa-solid fa-network-wired w-5 text-center"></i>
+                        Dependências
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 transition-colors">
+                        <i class="fa-solid fa-timeline w-5 text-center"></i>
+                        Execução
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 transition-colors">
+                        <i class="fa-solid fa-triangle-exclamation w-5 text-center"></i>
+                        Central de Alertas
+                    </a>
+                </li>
+            </ul>
+
+            <div class="px-6 mt-8 mb-2">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Administração</h3>
+            </div>
+            <ul class="space-y-1">
+                <li>
+                    <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 transition-colors">
+                        <i class="fa-solid fa-users-gear w-5 text-center"></i>
+                        Usuários & Perfis
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 transition-colors">
+                        <i class="fa-solid fa-gear w-5 text-center"></i>
+                        Configurações
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="p-4 border-t border-gray-200">
+            <div class="flex items-center gap-3">
+                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="User" class="w-10 h-10 rounded-full border border-gray-200">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 truncate">Carlos Silva</p>
+                    <p class="text-xs text-gray-500 truncate">Gestor Geral</p>
+                </div>
+                <button class="text-gray-400 hover:text-danger transition-colors">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden bg-tertiary">
+        
+        <!-- Header -->
+        <header id="header" class="bg-white border-b border-gray-200 py-4 px-6 md:px-8 flex items-center justify-between z-10 shadow-sm">
+            <div class="flex items-center gap-4">
+                <button class="md:hidden text-gray-500 hover:text-primary">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div>
+                    <h1 class="text-2xl font-bold text-primary">Dashboard Estratégico</h1>
+                    <p class="text-sm text-gray-500">Visão executiva do portfólio de projetos</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="relative hidden sm:block">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+                    </div>
+                    <input type="text" placeholder="Buscar projeto..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none w-64 bg-gray-50 focus:bg-white transition-all">
+                </div>
+                
+                <button class="relative p-2 text-gray-500 hover:text-primary transition-colors bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-danger rounded-full border-2 border-white"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-6 md:p-8">
+            
+            <!-- Filters Section -->
+            <section id="filters" class="mb-8 bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-end">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">Secretaria</label>
+                    <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none bg-white">
+                        <option>Todas as Secretarias</option>
+                        <option>Saúde</option>
+                        <option>Educação</option>
+                        <option>Infraestrutura</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">Programa</label>
+                    <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none bg-white">
+                        <option>Todos os Programas</option>
+                        <option>Acelera Município</option>
+                        <option>Saúde Digital</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[150px]">
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">Status</label>
+                    <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none bg-white">
+                        <option>Todos</option>
+                        <option>Em Andamento</option>
+                        <option>Atrasado</option>
+                        <option>Em Risco</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[150px]">
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">Período</label>
+                    <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none bg-white">
+                        <option>Este Ano</option>
+                        <option>Últimos 6 Meses</option>
+                        <option>Personalizado</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="bg-blue-brand text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 h-[38px]">
+                        <i class="fa-solid fa-filter"></i> Aplicar
+                    </button>
+                </div>
+            </section>
+
+            <!-- KPI Cards -->
+            <section id="kpi-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Card 1 -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -z-10"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Total de Projetos</p>
+                            <h3 class="text-3xl font-bold text-primary mt-1">142</h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-folder-tree"></i>
+                        </div>
+                    </div>
+                    <div class="mt-auto flex items-center text-sm">
+                        <span class="text-success font-medium flex items-center gap-1"><i class="fa-solid fa-arrow-trend-up"></i> +12%</span>
+                        <span class="text-gray-400 ml-2">vs último trimestre</span>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-success/10 rounded-bl-full -z-10"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Conclusão Média</p>
+                            <h3 class="text-3xl font-bold text-primary mt-1">64%</h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-lg bg-success/20 text-success flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                        <div class="bg-success h-2 rounded-full" style="width: 64%"></div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-success font-medium flex items-center gap-1"><i class="fa-solid fa-arrow-trend-up"></i> +5%</span>
+                        <span class="text-gray-400 ml-2">vs estimado (59%)</span>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-danger/10 rounded-bl-full -z-10"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Projetos em Risco</p>
+                            <h3 class="text-3xl font-bold text-primary mt-1">18</h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-lg bg-danger/20 text-danger flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                    </div>
+                    <div class="mt-auto flex items-center text-sm">
+                        <span class="text-danger font-medium flex items-center gap-1"><i class="fa-solid fa-arrow-trend-up"></i> +3</span>
+                        <span class="text-gray-400 ml-2">novos esta semana</span>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-warning/10 rounded-bl-full -z-10"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Orçamento Executado</p>
+                            <h3 class="text-3xl font-bold text-primary mt-1">42%</h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-lg bg-warning/20 text-warning flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                        <div class="bg-warning h-2 rounded-full" style="width: 42%"></div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-gray-600 font-medium">R$ 145.2M</span>
+                        <span class="text-gray-400 ml-2">de R$ 345.8M</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section id="charts" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Chart 1: Desempenho por Secretaria -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-primary">Status por Secretaria</h3>
+                        <button class="text-gray-400 hover:text-primary"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                    </div>
+                    <div id="chart-secretarias" class="h-[300px] w-full"></div>
+                </div>
+
+                <!-- Chart 2: Curva S (Realizado vs Estimado) -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-primary">Avanço Físico (Real vs Estimado)</h3>
+                        <div class="flex gap-2">
+                            <span class="flex items-center gap-1 text-xs text-gray-500"><div class="w-3 h-3 bg-blue-brand rounded-sm"></div> Real</span>
+                            <span class="flex items-center gap-1 text-xs text-gray-500"><div class="w-3 h-3 bg-gray-300 rounded-sm"></div> Estimado</span>
+                        </div>
+                    </div>
+                    <div id="chart-curva-s" class="h-[300px] w-full"></div>
+                </div>
+            </section>
+
+            <!-- Critical Milestones Table -->
+            <section id="critical-milestones" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
+                    <h3 class="text-lg font-bold text-primary">Marcos Críticos Próximos</h3>
+                    <a href="#" class="text-sm font-medium text-blue-brand hover:text-blue-800 transition-colors">Ver todos <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                                <th class="p-4 font-semibold">Projeto</th>
+                                <th class="p-4 font-semibold">Marco</th>
+                                <th class="p-4 font-semibold">Data Limite</th>
+                                <th class="p-4 font-semibold">Status</th>
+                                <th class="p-4 font-semibold">Responsável</th>
+                                <th class="p-4 font-semibold text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm divide-y divide-gray-100">
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="p-4">
+                                    <div class="font-medium text-primary">Hospital Municipal Central</div>
+                                    <div class="text-xs text-gray-500">Sec. Saúde</div>
+                                </td>
+                                <td class="p-4 text-gray-700">Conclusão Fundação</td>
+                                <td class="p-4 text-gray-700">15 Out 2023</td>
+                                <td class="p-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/20 text-warning">
+                                        Em Risco
+                                    </span>
+                                </td>
+                                <td class="p-4 flex items-center gap-2">
+                                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-2.jpg" alt="Resp" class="w-6 h-6 rounded-full">
+                                    <span class="text-gray-700">Roberto M.</span>
+                                </td>
+                                <td class="p-4 text-right">
+                                    <button class="text-blue-brand hover:text-blue-800 text-sm font-medium">Detalhes</button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="p-4">
+                                    <div class="font-medium text-primary">Nova Ponte Sul</div>
+                                    <div class="text-xs text-gray-500">Sec. Infraestrutura</div>
+                                </td>
+                                <td class="p-4 text-gray-700">Aprovação Ambiental</td>
+                                <td class="p-4 text-danger font-medium">02 Out 2023</td>
+                                <td class="p-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-danger/20 text-danger">
+                                        Atrasado
+                                    </span>
+                                </td>
+                                <td class="p-4 flex items-center gap-2">
+                                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" alt="Resp" class="w-6 h-6 rounded-full">
+                                    <span class="text-gray-700">Ana L.</span>
+                                </td>
+                                <td class="p-4 text-right">
+                                    <button class="text-blue-brand hover:text-blue-800 text-sm font-medium">Detalhes</button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="p-4">
+                                    <div class="font-medium text-primary">Escola Modelo Bairro Alto</div>
+                                    <div class="text-xs text-gray-500">Sec. Educação</div>
+                                </td>
+                                <td class="p-4 text-gray-700">Entrega Mobiliário</td>
+                                <td class="p-4 text-gray-700">28 Out 2023</td>
+                                <td class="p-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/20 text-success">
+                                        No Prazo
+                                    </span>
+                                </td>
+                                <td class="p-4 flex items-center gap-2">
+                                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-8.jpg" alt="Resp" class="w-6 h-6 rounded-full">
+                                    <span class="text-gray-700">Carlos E.</span>
+                                </td>
+                                <td class="p-4 text-right">
+                                    <button class="text-blue-brand hover:text-blue-800 text-sm font-medium">Detalhes</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        // Chart Scripts
+        window.addEventListener('load', function() {
+            try {
+                // Chart 1: Status por Secretaria (Stacked Bar)
+                var trace1 = {
+                    x: ['Saúde', 'Educação', 'Infraestrutura', 'Segurança', 'Cultura'],
+                    y: [12, 15, 8, 5, 4],
+                    name: 'No Prazo',
+                    type: 'bar',
+                    marker: {color: '#10B981'}
+                };
+                var trace2 = {
+                    x: ['Saúde', 'Educação', 'Infraestrutura', 'Segurança', 'Cultura'],
+                    y: [3, 2, 5, 1, 0],
+                    name: 'Em Risco',
+                    type: 'bar',
+                    marker: {color: '#F59E0B'}
+                };
+                var trace3 = {
+                    x: ['Saúde', 'Educação', 'Infraestrutura', 'Segurança', 'Cultura'],
+                    y: [1, 0, 4, 0, 1],
+                    name: 'Atrasado',
+                    type: 'bar',
+                    marker: {color: '#EF4444'}
+                };
+                var dataSecretarias = [trace1, trace2, trace3];
+                var layoutSecretarias = {
+                    barmode: 'stack',
+                    margin: { t: 20, r: 20, b: 40, l: 40 },
+                    paper_bgcolor: 'transparent',
+                    plot_bgcolor: 'transparent',
+                    showlegend: true,
+                    legend: { orientation: 'h', y: -0.2 }
+                };
+                Plotly.newPlot('chart-secretarias', dataSecretarias, layoutSecretarias, {responsive: true, displayModeBar: false});
+
+                // Chart 2: Curva S (Real vs Estimado)
+                var traceReal = {
+                    x: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago'],
+                    y: [5, 12, 25, 38, 45, 52, 60, 64],
+                    name: 'Realizado',
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: {color: '#2563EB', width: 3},
+                    marker: {size: 8}
+                };
+                var traceEstimado = {
+                    x: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                    y: [5, 15, 30, 45, 55, 65, 75, 80, 85, 90, 95, 100],
+                    name: 'Estimado',
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {color: '#CBD5E1', width: 2, dash: 'dash'}
+                };
+                var dataCurvaS = [traceEstimado, traceReal];
+                var layoutCurvaS = {
+                    margin: { t: 20, r: 20, b: 40, l: 40 },
+                    paper_bgcolor: 'transparent',
+                    plot_bgcolor: 'transparent',
+                    showlegend: false,
+                    yaxis: { ticksuffix: '%' }
+                };
+                Plotly.newPlot('chart-curva-s', dataCurvaS, layoutCurvaS, {responsive: true, displayModeBar: false});
+
+            } catch(e) {
+                console.error('Error rendering charts:', e);
+            }
+        });
+    </script>
+    <script>
+        window.__MVP_FLOW__ = { type: 'suite', role: 'admin' };
+    </script>
+    <script src="mvp-flow.js"></script>
+</body>
+</html>

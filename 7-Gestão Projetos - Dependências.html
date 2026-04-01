@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <script>
+        window.FontAwesomeConfig = {
+          autoReplaceSvg: 'nest'
+        };
+      </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dependências (Grafo) - 5C eficiencia governamental</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-3.1.1.min.js"></script>
+    <!-- Cytoscape.js for Graph Visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5', // Indigo 600
+                        secondary: '#6366F1', // Indigo 500
+                        dark: {
+                            bg: '#111827',
+                            card: '#1F2937',
+                            text: '#F9FAFB',
+                            muted: '#9CA3AF',
+                            border: '#374151'
+                        },
+                        light: {
+                            bg: '#F3F4F6',
+                            card: '#FFFFFF',
+                            text: '#111827',
+                            muted: '#6B7280',
+                            border: '#E5E7EB'
+                        },
+                        accent: '#8B5CF6', // Purple 500
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        info: '#3B82F6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0,0,0,0.05)',
+                        'card': '0 10px 30px -5px rgba(0,0,0,0.08)',
+                    },
+                    borderRadius: {
+                        'xl': '1rem',
+                        '2xl': '1.5rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: #111827; /* Default Dark Mode */
+            color: #F9FAFB;
+        }
+        
+        /* Light Mode Overrides */
+        body.light-mode {
+            background-color: #F3F4F6;
+            color: #111827;
+        }
+        .light-mode .bg-dark-card { background-color: #FFFFFF; }
+        .light-mode .text-dark-text { color: #111827; }
+        .light-mode .text-dark-muted { color: #6B7280; }
+        .light-mode .border-dark-border { border-color: #E5E7EB; }
+        .light-mode .hover\:bg-dark-border:hover { background-color: #F3F4F6; }
+
+        ::-webkit-scrollbar { display: none; }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            color: #9CA3AF;
+            transition: all 0.2s ease;
+            margin: 8px auto;
+        }
+        
+        .sidebar-item.active {
+            background-color: #4F46E5;
+            color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        
+        .sidebar-item:hover:not(.active) {
+            background-color: #374151;
+            color: #F9FAFB;
+        }
+        
+        .light-mode .sidebar-item:hover:not(.active) {
+            background-color: #E5E7EB;
+            color: #111827;
+        }
+
+        .graph-container {
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+            position: relative;
+        }
+
+        #cy {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .graph-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-20 bg-dark-card flex flex-col hidden md:flex h-full z-20 py-6 border-r border-dark-border transition-colors duration-200">
+        <div class="flex items-center justify-center mb-8">
+            <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto w-full px-2">
+            <ul class="space-y-2 flex flex-col items-center">
+                <li>
+                    <a href="#" class="sidebar-item" title="Dashboard Estratégico">
+                        <i class="fa-solid fa-chart-pie text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Portfólio de Projetos">
+                        <i class="fa-solid fa-folder-open text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item active" title="Dependências">
+                        <i class="fa-solid fa-network-wired text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Execução">
+                        <i class="fa-solid fa-timeline text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Central de Alertas">
+                        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="mt-8 mb-2 flex justify-center">
+                <div class="w-8 h-px bg-dark-border"></div>
+            </div>
+            
+            <ul class="space-y-2 flex flex-col items-center">
+                <li>
+                    <a href="#" class="sidebar-item" title="Usuários & Perfis">
+                        <i class="fa-solid fa-users-gear text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Configurações">
+                        <i class="fa-solid fa-gear text-lg"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="mt-auto px-2 pt-4 flex justify-center">
+            <button id="themeToggle" class="sidebar-item">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-dark-bg transition-colors duration-200">
+        
+        <!-- Header -->
+        <header id="header" class="py-6 px-8 flex items-center justify-between z-10 sticky top-0 bg-dark-bg transition-colors duration-200">
+            <div class="flex items-center gap-6">
+                <button class="md:hidden text-dark-muted hover:text-primary">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div>
+                    <h2 class="text-sm font-medium text-dark-muted mb-1">Portfólio de Projetos</h2>
+                    <h1 class="text-3xl font-bold text-dark-text tracking-tight">Grafo de Dependências</h1>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="relative hidden lg:block">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-dark-muted"></i>
+                    </div>
+                    <input type="text" placeholder="Buscar projetos, secretarias..." class="pl-11 pr-4 py-2.5 border border-dark-border rounded-full text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none w-80 bg-dark-card text-dark-text transition-all shadow-sm">
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="w-10 h-10 rounded-full bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-primary transition-all shadow-sm">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full border-2 border-dark-card"></span>
+                    </button>
+                    
+                    <div class="flex items-center gap-3 pl-4 border-l border-dark-border ml-2">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="User" class="w-10 h-10 rounded-full border-2 border-dark-card shadow-sm">
+                        <div class="hidden sm:block">
+                            <p class="text-sm font-semibold text-dark-text">Alex Smith</p>
+                            <p class="text-xs text-dark-muted">Administrador</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden px-8 pb-8 gap-6">
+            
+            <!-- Main Graph Area (Left/Top) -->
+            <div class="flex-1 flex flex-col gap-6 h-full min-h-[500px]">
+                
+                <!-- Filters Bar -->
+                <div id="filter-controls" class="bg-dark-card rounded-2xl p-4 border border-dark-border shadow-soft flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-4 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-medium text-dark-muted">Secretaria:</span>
+                            <select class="bg-dark-bg border border-dark-border text-dark-text text-sm rounded-lg focus:ring-primary focus:border-primary block w-40 p-2">
+                                <option>Todas</option>
+                                <option>Saúde</option>
+                                <option>Infraestrutura</option>
+                                <option>Educação</option>
+                                <option>Fazenda</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-medium text-dark-muted">Status:</span>
+                            <select class="bg-dark-bg border border-dark-border text-dark-text text-sm rounded-lg focus:ring-primary focus:border-primary block w-32 p-2">
+                                <option>Todos</option>
+                                <option>Em Risco</option>
+                                <option>Atrasado</option>
+                                <option>No Prazo</option>
+                            </select>
+                        </div>
+                        
+                        <div class="h-6 w-px bg-dark-border hidden md:block"></div>
+                        
+                        <div class="flex items-center gap-3">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" checked class="rounded border-dark-border text-primary focus:ring-primary bg-dark-bg">
+                                <span class="text-sm text-dark-text">Caminho Crítico</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" class="rounded border-dark-border text-primary focus:ring-primary bg-dark-bg">
+                                <span class="text-sm text-dark-text">Apenas Gargalos</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <button class="px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-sm font-medium text-dark-text hover:bg-dark-border flex items-center gap-2 transition-colors">
+                            <i class="fa-solid fa-filter"></i> Mais Filtros
+                        </button>
+                        <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-secondary flex items-center gap-2 transition-colors shadow-sm">
+                            <i class="fa-solid fa-download"></i> Exportar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Graph Visualization Container -->
+                <div id="graph-visualization" class="flex-1 bg-dark-card rounded-2xl border border-dark-border shadow-soft relative overflow-hidden">
+                    <div class="absolute top-4 left-4 z-10 bg-dark-bg/80 backdrop-blur border border-dark-border rounded-lg p-3 shadow-lg">
+                        <h3 class="text-sm font-semibold text-dark-text mb-2">Legenda</h3>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-primary"></div><span>Projeto Base</span></div>
+                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-danger"></div><span>Gargalo / Atraso</span></div>
+                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-warning"></div><span>Em Risco</span></div>
+                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-success"></div><span>No Prazo</span></div>
+                            <div class="flex items-center gap-2 mt-2"><div class="w-4 h-1 bg-danger"></div><span>Caminho Crítico</span></div>
+                        </div>
+                    </div>
+
+                    <div class="graph-container">
+                        <div id="cy"></div>
+                        
+                        <!-- Zoom/Pan Controls -->
+                        <div class="graph-controls">
+                            <button id="zoom-in" class="w-8 h-8 bg-dark-bg border border-dark-border rounded-lg flex items-center justify-center text-dark-text hover:bg-primary hover:text-white transition-colors shadow-sm">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                            <button id="zoom-out" class="w-8 h-8 bg-dark-bg border border-dark-border rounded-lg flex items-center justify-center text-dark-text hover:bg-primary hover:text-white transition-colors shadow-sm">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <button id="fit-graph" class="w-8 h-8 bg-dark-bg border border-dark-border rounded-lg flex items-center justify-center text-dark-text hover:bg-primary hover:text-white transition-colors shadow-sm mt-2" title="Ajustar à tela">
+                                <i class="fa-solid fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Node Details -->
+            <div id="node-details-panel" class="w-full lg:w-96 bg-dark-card rounded-2xl border border-dark-border shadow-soft flex flex-col h-full overflow-hidden flex-shrink-0">
+                <div class="p-5 border-b border-dark-border flex justify-between items-center bg-dark-bg/50">
+                    <h3 class="text-lg font-bold text-dark-text">Detalhes do Nó</h3>
+                    <button class="text-dark-muted hover:text-dark-text"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-5 space-y-6">
+                    <!-- Placeholder when no node selected -->
+                    <div id="empty-state" class="hidden h-full flex flex-col items-center justify-center text-center text-dark-muted">
+                        <i class="fa-solid fa-hand-pointer text-4xl mb-3 opacity-50"></i>
+                        <p class="text-sm">Selecione um projeto ou entrega no grafo para ver os detalhes, dependências e ações disponíveis.</p>
+                    </div>
+
+                    <!-- Active Node Details -->
+                    <div id="active-node-details">
+                        <div class="mb-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-1 rounded text-[10px] font-bold bg-danger/20 text-danger border border-danger/30 uppercase tracking-wider">Nó Crítico</span>
+                                <span class="text-xs text-dark-muted">Sec. de Infraestrutura</span>
+                            </div>
+                            <h2 class="text-xl font-bold text-dark-text leading-tight">Pavimentação do Acesso Leste</h2>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 mb-6">
+                            <div class="bg-dark-bg p-3 rounded-xl border border-dark-border">
+                                <p class="text-[10px] text-dark-muted uppercase font-semibold mb-1">Status</p>
+                                <p class="text-sm font-bold text-danger flex items-center gap-1"><i class="fa-solid fa-circle-exclamation text-xs"></i> Atrasado</p>
+                            </div>
+                            <div class="bg-dark-bg p-3 rounded-xl border border-dark-border">
+                                <p class="text-[10px] text-dark-muted uppercase font-semibold mb-1">Atraso Estimado</p>
+                                <p class="text-sm font-bold text-dark-text">15 dias</p>
+                            </div>
+                            <div class="bg-dark-bg p-3 rounded-xl border border-dark-border">
+                                <p class="text-[10px] text-dark-muted uppercase font-semibold mb-1">Progresso</p>
+                                <p class="text-sm font-bold text-dark-text">45%</p>
+                            </div>
+                            <div class="bg-dark-bg p-3 rounded-xl border border-dark-border">
+                                <p class="text-[10px] text-dark-muted uppercase font-semibold mb-1">Responsável</p>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-2.jpg" class="w-5 h-5 rounded-full" alt="User">
+                                    <p class="text-xs font-medium text-dark-text truncate">R. Alves</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 mb-6">
+                            <h4 class="text-sm font-semibold text-dark-text border-b border-dark-border pb-2">Impacto (Dependências)</h4>
+                            
+                            <div>
+                                <p class="text-xs text-dark-muted mb-2">Bloqueia (2):</p>
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between p-2 bg-dark-bg rounded-lg border border-dark-border border-l-2 border-l-danger">
+                                        <div class="flex items-center gap-2 overflow-hidden">
+                                            <i class="fa-solid fa-hospital text-dark-muted text-xs"></i>
+                                            <p class="text-xs font-medium text-dark-text truncate">Novo Hospital Municipal</p>
+                                        </div>
+                                        <span class="text-[10px] text-danger bg-danger/10 px-1.5 py-0.5 rounded font-medium">Alto Risco</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-2 bg-dark-bg rounded-lg border border-dark-border border-l-2 border-l-warning">
+                                        <div class="flex items-center gap-2 overflow-hidden">
+                                            <i class="fa-solid fa-bus text-dark-muted text-xs"></i>
+                                            <p class="text-xs font-medium text-dark-text truncate">Nova Linha de Ônibus 405</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <p class="text-xs text-dark-muted mb-2">Bloqueado por (1):</p>
+                                <div class="flex items-center justify-between p-2 bg-dark-bg rounded-lg border border-dark-border border-l-2 border-l-success">
+                                    <div class="flex items-center gap-2 overflow-hidden">
+                                        <i class="fa-solid fa-file-signature text-dark-muted text-xs"></i>
+                                        <p class="text-xs font-medium text-dark-text truncate">Licitação de Materiais Base</p>
+                                    </div>
+                                    <span class="text-[10px] text-success bg-success/10 px-1.5 py-0.5 rounded font-medium">Concluído</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h4 class="text-sm font-semibold text-dark-text border-b border-dark-border pb-2">Ações Rápidas</h4>
+                            <button class="w-full py-2 px-3 bg-primary/10 text-primary hover:bg-primary hover:text-white border border-primary/20 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Registrar Impedimento
+                            </button>
+                            <button class="w-full py-2 px-3 bg-dark-bg text-dark-text hover:bg-dark-border border border-dark-border rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-user-plus"></i> Reatribuir Responsável
+                            </button>
+                            <button class="w-full py-2 px-3 bg-dark-bg text-dark-text hover:bg-dark-border border border-dark-border rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-link"></i> Ajustar Dependência
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            const isLight = body.classList.contains('light-mode');
+            themeToggle.innerHTML = isLight ? '<i class="fa-solid fa-sun text-warning"></i>' : '<i class="fa-solid fa-moon"></i>';
+            
+            // Update graph styles based on theme
+            if(window.cy) {
+                const textColor = isLight ? '#111827' : '#F9FAFB';
+                const edgeColor = isLight ? '#9CA3AF' : '#4B5563';
+                window.cy.style()
+                    .selector('node').style({'color': textColor})
+                    .selector('edge').style({'line-color': edgeColor, 'target-arrow-color': edgeColor})
+                    .update();
+            }
+        });
+
+        // Cytoscape.js Graph Initialization
+        window.addEventListener('load', function() {
+            try {
+                const isLight = document.body.classList.contains('light-mode');
+                const textColor = isLight ? '#111827' : '#F9FAFB';
+                const edgeColor = isLight ? '#9CA3AF' : '#4B5563';
+
+                var cy = cytoscape({
+                    container: document.getElementById('cy'),
+                    
+                    elements: [
+                        // Nodes
+                        { data: { id: 'hosp', name: 'Novo Hospital\nMunicipal', type: 'project', status: 'risk' } },
+                        { data: { id: 'pav', name: 'Pavimentação\nAcesso Leste', type: 'delivery', status: 'delayed', critical: true } },
+                        { data: { id: 'lic', name: 'Licitação\nMateriais', type: 'delivery', status: 'done' } },
+                        { data: { id: 'onibus', name: 'Nova Linha\nÔnibus 405', type: 'project', status: 'on_track' } },
+                        { data: { id: 'sane', name: 'Saneamento\nBásico Leste', type: 'project', status: 'on_track' } },
+                        { data: { id: 'amb', name: 'Licença\nAmbiental', type: 'delivery', status: 'done' } },
+                        
+                        // Edges (Dependencies)
+                        { data: { id: 'e1', source: 'lic', target: 'pav', type: 'blocks' } },
+                        { data: { id: 'e2', source: 'pav', target: 'hosp', type: 'blocks', critical: true, delay: '15d' } },
+                        { data: { id: 'e3', source: 'pav', target: 'onibus', type: 'blocks' } },
+                        { data: { id: 'e4', source: 'amb', target: 'hosp', type: 'blocks' } },
+                        { data: { id: 'e5', source: 'sane', target: 'hosp', type: 'blocks' } }
+                    ],
+
+                    style: [
+                        {
+                            selector: 'node',
+                            style: {
+                                'label': 'data(name)',
+                                'text-valign': 'bottom',
+                                'text-halign': 'center',
+                                'text-margin-y': 8,
+                                'font-size': '12px',
+                                'font-family': 'Inter, sans-serif',
+                                'color': textColor,
+                                'text-wrap': 'wrap',
+                                'width': 40,
+                                'height': 40,
+                                'border-width': 2,
+                                'border-color': '#111827',
+                                'background-color': '#4F46E5' // Default Primary
+                            }
+                        },
+                        {
+                            selector: 'node[status="done"]',
+                            style: { 'background-color': '#10B981' } // Success
+                        },
+                        {
+                            selector: 'node[status="risk"]',
+                            style: { 'background-color': '#F59E0B' } // Warning
+                        },
+                        {
+                            selector: 'node[status="delayed"]',
+                            style: { 
+                                'background-color': '#EF4444', // Danger
+                                'width': 50,
+                                'height': 50,
+                                'border-width': 3,
+                                'border-color': '#FCA5A5'
+                            }
+                        },
+                        {
+                            selector: 'edge',
+                            style: {
+                                'width': 2,
+                                'line-color': edgeColor,
+                                'target-arrow-color': edgeColor,
+                                'target-arrow-shape': 'triangle',
+                                'curve-style': 'bezier',
+                                'arrow-scale': 1.5
+                            }
+                        },
+                        {
+                            selector: 'edge[critical]',
+                            style: {
+                                'width': 4,
+                                'line-color': '#EF4444',
+                                'target-arrow-color': '#EF4444',
+                                'label': 'data(delay)',
+                                'font-size': '10px',
+                                'color': '#EF4444',
+                                'text-background-opacity': 1,
+                                'text-background-color': '#111827',
+                                'text-background-padding': '2px'
+                            }
+                        },
+                        {
+                            selector: ':selected',
+                            style: {
+                                'border-width': 4,
+                                'border-color': '#8B5CF6',
+                                'shadow-blur': 10,
+                                'shadow-color': '#8B5CF6',
+                                'shadow-opacity': 0.8
+                            }
+                        }
+                    ],
+
+                    layout: {
+                        name: 'breadthfirst',
+                        directed: true,
+                        padding: 50,
+                        spacingFactor: 1.5
+                    }
+                });
+
+                // Store cy instance globally for theme toggling
+                window.cy = cy;
+
+                // Controls
+                document.getElementById('zoom-in').addEventListener('click', () => cy.zoom(cy.zoom() * 1.2));
+                document.getElementById('zoom-out').addEventListener('click', () => cy.zoom(cy.zoom() * 0.8));
+                document.getElementById('fit-graph').addEventListener('click', () => cy.fit());
+
+                // Node Selection interaction
+                cy.on('tap', 'node', function(evt){
+                    var node = evt.target;
+                    // In a real app, this would update the right panel data based on node.id()
+                    // For demo, we just ensure the panel shows active state
+                    document.getElementById('empty-state').classList.add('hidden');
+                    document.getElementById('active-node-details').classList.remove('hidden');
+                });
+
+                cy.on('tap', function(evt){
+                    if(evt.target === cy){
+                        cy.elements().removeClass('selected');
+                        // Optional: hide details when clicking background
+                        // document.getElementById('empty-state').classList.remove('hidden');
+                        // document.getElementById('active-node-details').classList.add('hidden');
+                    }
+                });
+
+            } catch(e) {
+                console.error("Cytoscape rendering error:", e);
+                document.getElementById('cy').innerHTML = '<div class="flex items-center justify-center h-full text-danger">Error loading graph visualization.</div>';
+            }
+        });
+    </script>
+    <script>
+        window.__MVP_FLOW__ = { type: 'suite', role: 'admin' };
+    </script>
+    <script src="mvp-flow.js"></script>
+</body>
+</html>

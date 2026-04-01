@@ -1,0 +1,659 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <script>
+        window.FontAwesomeConfig = {
+          autoReplaceSvg: 'nest'
+        };
+      </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Projeto - Recursos Hídricos - 5C eficiencia governamental</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-3.1.1.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E293B',
+                        secondary: '#334155',
+                        tertiary: '#F8FAFC',
+                        accent: '#3B82F6',
+                        'light-bg': '#F1F5F9',
+                        'purple-brand': '#8B5CF6',
+                        'blue-brand': '#2563EB',
+                        'teal-brand': '#0D9488',
+                        'success': '#10B981',
+                        'success-light': '#D1FAE5',
+                        'warning': '#F59E0B',
+                        'warning-light': '#FEF3C7',
+                        'danger': '#EF4444',
+                        'danger-light': '#FEE2E2',
+                        'info': '#3B82F6',
+                        'info-light': '#DBEAFE',
+                        'neutral-light': '#F3F4F6',
+                        'panze-bg': '#F3F4F6',
+                        'panze-card': '#FFFFFF',
+                        'panze-text': '#111827',
+                        'panze-muted': '#6B7280',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0,0,0,0.05)',
+                        'card': '0 10px 30px -5px rgba(0,0,0,0.08)',
+                        'inner-light': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
+                        'panze': '0px 4px 24px rgba(0, 0, 0, 0.04)'
+                    },
+                    borderRadius: {
+                        'xl': '1rem',
+                        '2xl': '1.5rem',
+                        '3xl': '2rem'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: #F3F4F6; /* Adjusted to match inspiration */
+        }
+        ::-webkit-scrollbar { display: none; }
+        
+        /* Updated Sidebar Styles to match inspiration */
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            color: #6B7280;
+            transition: all 0.2s ease;
+            margin: 8px auto;
+        }
+        
+        .sidebar-item.active {
+            background-color: #111827;
+            color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(17, 24, 39, 0.2);
+        }
+        
+        .sidebar-item:hover:not(.active) {
+            background-color: #E5E7EB;
+            color: #111827;
+        }
+
+        /* Progress Bar Base */
+        .progress-base {
+            background-color: #E5E7EB;
+            border-radius: 9999px;
+            height: 8px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s ease;
+        }
+
+        /* Tabs */
+        .tab-btn {
+            position: relative;
+            padding: 12px 24px;
+            color: #6B7280;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .tab-btn.active {
+            color: #111827;
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #2563EB;
+            border-radius: 2px 2px 0 0;
+        }
+
+        /* Card Styles inspired by Panze */
+        .panze-card {
+            background: #FFFFFF;
+            border-radius: 1.5rem;
+            box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+
+        /* Timeline */
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 24px;
+            bottom: -24px;
+            width: 2px;
+            background-color: #E5E7EB;
+        }
+        .timeline-item:last-child::before {
+            display: none;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-panze-bg text-panze-text">
+
+    <!-- Sidebar (Icon Only - Panze Style) -->
+    <aside id="sidebar" class="w-20 bg-panze-bg flex flex-col hidden md:flex h-full z-20 py-6 border-r border-gray-200/50">
+        <div class="flex items-center justify-center mb-8">
+            <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto w-full px-2">
+            <ul class="space-y-2 flex flex-col items-center">
+                <li>
+                    <a href="#" class="sidebar-item" title="Dashboard Estratégico">
+                        <i class="fa-solid fa-chart-pie text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item active" title="Portfólio de Projetos">
+                        <i class="fa-solid fa-folder-open text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Dependências">
+                        <i class="fa-solid fa-network-wired text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Execução">
+                        <i class="fa-solid fa-timeline text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Central de Alertas">
+                        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="mt-8 mb-2 flex justify-center">
+                <div class="w-8 h-px bg-gray-300"></div>
+            </div>
+            
+            <ul class="space-y-2 flex flex-col items-center">
+                <li>
+                    <a href="#" class="sidebar-item" title="Usuários & Perfis">
+                        <i class="fa-solid fa-users-gear text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Configurações">
+                        <i class="fa-solid fa-gear text-lg"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <!-- Header (Panze Style) -->
+        <header id="header" class="bg-panze-bg py-6 px-8 flex items-center justify-between z-10 sticky top-0">
+            <div class="flex items-center gap-6">
+                <button class="md:hidden text-gray-500 hover:text-primary">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div>
+                    <h2 class="text-sm font-medium text-panze-muted mb-1">Portfólio de Projetos / Detalhes</h2>
+                    <h1 class="text-3xl font-bold text-panze-text tracking-tight">Sistema de Abastecimento e Tratamento de Água do Assentamento Bonifácio</h1>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="relative hidden lg:block">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+                    </div>
+                    <input type="text" placeholder="Search tasks, files..." class="pl-11 pr-4 py-2.5 border border-gray-200 rounded-full text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none w-80 bg-white transition-all shadow-sm">
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-primary hover:bg-gray-50 transition-all shadow-sm">
+                        <i class="fa-regular fa-envelope"></i>
+                    </button>
+                    <button class="relative w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-primary hover:bg-gray-50 transition-all shadow-sm">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full border-2 border-white"></span>
+                    </button>
+                    
+                    <div class="flex items-center gap-3 pl-4 border-l border-gray-200 ml-2">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="User" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                        <div class="hidden sm:block">
+                            <p class="text-sm font-semibold text-panze-text">Carlos Silva</p>
+                            <p class="text-xs text-panze-muted">Gestor Geral</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto px-8 pb-8">
+            
+            <!-- Context Tabs -->
+            <div class="flex border-b border-gray-200 mb-6">
+                <button class="tab-btn active">Resumo & Progresso</button>
+                <button class="tab-btn">Dependências</button>
+                <button class="tab-btn">Linha do Tempo</button>
+                <button class="tab-btn flex items-center gap-2">
+                    Alertas
+                    <span class="bg-danger text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">2</span>
+                </button>
+                <button class="tab-btn">Atualizações</button>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Left Column (Wider) -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- Section 1: Cabeçalho do Projeto & Resumo de Indicadores -->
+                    <div class="panze-card p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                            <div>
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700">
+                                        <i class="fa-solid fa-water mr-1.5"></i> Abastecimento Rural
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-warning-light text-warning border border-warning/20">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-warning"></span> Em Risco (Atraso)
+                                    </span>
+                                </div>
+                                <p class="text-sm text-panze-muted max-w-2xl">Implantação de canalização, reforço de margens e dispositivos de contenção para reduzir alagamentos recorrentes na bacia norte do município.</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                                    <i class="fa-solid fa-pen text-gray-400"></i> Editar
+                                </button>
+                                <button class="px-4 py-2 bg-blue-brand text-white rounded-xl text-sm font-medium hover:bg-blue-700 flex items-center gap-2 transition-colors shadow-sm">
+                                    <i class="fa-solid fa-plus"></i> Nova Entrega
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Key Metrics Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                <p class="text-xs text-panze-muted font-medium mb-1">Progresso Geral</p>
+                                <div class="flex items-end gap-2">
+                                <h3 class="text-2xl font-bold text-panze-text">62%</h3>
+                                    <span class="text-xs text-danger font-medium mb-1 flex items-center"><i class="fa-solid fa-arrow-down mr-1"></i> 5%</span>
+                                </div>
+                                <div class="progress-base mt-3">
+                                    <div class="progress-fill bg-warning" style="width: 62%;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                <p class="text-xs text-panze-muted font-medium mb-1">Prazo Estimado</p>
+                                <h3 class="text-xl font-bold text-panze-text">15 Jul 2026</h3>
+                                <p class="text-xs text-warning font-medium mt-1">Atraso estimado: 12 dias</p>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                <p class="text-xs text-panze-muted font-medium mb-1">Orçamento Executado</p>
+                                <h3 class="text-xl font-bold text-panze-text">R$ 17.6M</h3>
+                                <p class="text-xs text-panze-muted mt-1">de R$ 45.2M (44%)</p>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                <p class="text-xs text-panze-muted font-medium mb-1">Entregas Concluídas</p>
+                                <h3 class="text-xl font-bold text-panze-text">10 / 16</h3>
+                                <p class="text-xs text-success font-medium mt-1">2 entregues esta semana</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Visão de Etapas e Entregas -->
+                    <div class="panze-card p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-panze-text">Etapas e Entregas</h3>
+                            <button class="text-sm text-blue-brand font-medium hover:underline">Ver todas</button>
+                        </div>
+
+                        <div class="space-y-4">
+                            <!-- Etapa 1 -->
+                            <div class="border border-gray-200 rounded-xl p-4">
+                                <div class="flex justify-between items-center mb-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-success-light text-success flex items-center justify-center">
+                                            <i class="fa-solid fa-check"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-panze-text">1. Limpeza e desassoreamento inicial</h4>
+                                            <p class="text-xs text-panze-muted">Concluído em 15 Mar 2024</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-bold text-success">100%</span>
+                                </div>
+                                <div class="progress-base">
+                                    <div class="progress-fill bg-success" style="width: 100%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Etapa 2 -->
+                            <div class="border border-blue-200 rounded-xl p-4 bg-blue-50/30">
+                                <div class="flex justify-between items-center mb-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-brand flex items-center justify-center">
+                                            <i class="fa-solid fa-person-digging"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-panze-text">2. Canalização e contenção das margens</h4>
+                                            <p class="text-xs text-panze-muted">Previsão: 30 Ago 2024</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-bold text-blue-brand">65%</span>
+                                </div>
+                                <div class="progress-base mb-4">
+                                    <div class="progress-fill bg-blue-brand" style="width: 65%;"></div>
+                                </div>
+                                
+                                <!-- Sub-entregas -->
+                                <div class="pl-11 space-y-2">
+                                    <div class="flex items-center justify-between text-sm">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-solid fa-circle-check text-success text-xs"></i>
+                                            <span class="text-gray-600 line-through">Anteprojeto concluído</span>
+                                        </div>
+                                        <span class="text-xs text-panze-muted">Concluído</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-solid fa-circle-notch fa-spin text-blue-brand text-xs"></i>
+                                            <span class="text-panze-text font-medium">Licença ambiental em validação final</span>
+                                        </div>
+                                        <span class="text-xs text-blue-brand font-medium">Em andamento</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-regular fa-circle text-gray-300 text-xs"></i>
+                                            <span class="text-gray-500">Contratos em preparação com Licitações</span>
+                                        </div>
+                                        <span class="text-xs text-panze-muted">Pendente</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Etapa 3 -->
+                            <div class="border border-gray-200 rounded-xl p-4 opacity-70">
+                                <div class="flex justify-between items-center mb-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center">
+                                            <i class="fa-solid fa-plug"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-panze-text">3. Sensoriamento e automação</h4>
+                                            <p class="text-xs text-panze-muted">Previsão: 15 Out 2024</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-bold text-gray-400">0%</span>
+                                </div>
+                                <div class="progress-base">
+                                    <div class="progress-fill bg-gray-300" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Chart / Financial Overview (Inspired by Panze Income vs Expense) -->
+                    <div class="panze-card p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-panze-text">Evolução Financeira vs Física</h3>
+                            <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">
+                                <i class="fa-solid fa-sliders text-sm"></i>
+                            </button>
+                        </div>
+                        <div id="financeChart" class="h-[300px] w-full"></div>
+                    </div>
+
+                </div>
+
+                <!-- Right Column (Narrower) -->
+                <div class="space-y-6">
+                    
+                    <!-- Section 4: Responsáveis (Secretarias) -->
+                    <div class="panze-card p-6">
+                        <h3 class="text-lg font-bold text-panze-text mb-4">Equipe e Responsáveis</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-1.jpg" alt="Ana" class="w-10 h-10 rounded-full border border-gray-200">
+                                    <div>
+                                        <p class="text-sm font-semibold text-panze-text">Dra. Ana Costa</p>
+                                        <p class="text-xs text-panze-muted">Gerente de Projeto (Recursos Hídricos)</p>
+                                    </div>
+                                </div>
+                                <button class="text-gray-400 hover:text-blue-brand"><i class="fa-solid fa-comment-dots"></i></button>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-2.jpg" alt="Roberto" class="w-10 h-10 rounded-full border border-gray-200">
+                                    <div>
+                                        <p class="text-sm font-semibold text-panze-text">Roberto Alves</p>
+                                        <p class="text-xs text-panze-muted">Fiscal de Campo (Abastecimento Rural)</p>
+                                    </div>
+                                </div>
+                                <button class="text-gray-400 hover:text-blue-brand"><i class="fa-solid fa-comment-dots"></i></button>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-sm">
+                                        SF
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-panze-text">Coord. de Outorgas</p>
+                                        <p class="text-xs text-panze-muted">Aprovação Financeira</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="w-full mt-4 py-2 text-sm font-medium text-blue-brand border border-blue-200 rounded-xl hover:bg-blue-50 transition-colors">
+                            Ver todos os envolvidos
+                        </button>
+                    </div>
+
+                    <!-- Section 5: Anexos -->
+                    <div class="panze-card p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-panze-text">Documentos Recentes</h3>
+                            <button class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100">
+                                <i class="fa-solid fa-plus text-sm"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-gray-200">
+                                <div class="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center text-lg flex-shrink-0">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-panze-text truncate">Mapa_Drenagem_Corrego_Norte_v4.pdf</p>
+                                    <p class="text-xs text-panze-muted">Atualizado há 2 dias • 4.2 MB</p>
+                                </div>
+                                <button class="text-gray-400 hover:text-primary"><i class="fa-solid fa-download"></i></button>
+                            </div>
+
+                            <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-gray-200">
+                                <div class="w-10 h-10 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-lg flex-shrink-0">
+                                    <i class="fa-solid fa-file-excel"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-panze-text truncate">Cronograma_Fisico_Financeiro.xlsx</p>
+                                    <p class="text-xs text-panze-muted">Atualizado hoje • 1.1 MB</p>
+                                </div>
+                                <button class="text-gray-400 hover:text-primary"><i class="fa-solid fa-download"></i></button>
+                            </div>
+                        </div>
+                        <button class="w-full mt-2 text-xs font-medium text-panze-muted hover:text-blue-brand text-left px-3">
+                            Ver todos os 14 anexos <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    <!-- Section 6: Histórico / Timeline Resumida -->
+                    <div class="panze-card p-6">
+                        <h3 class="text-lg font-bold text-panze-text mb-6">Histórico Recente</h3>
+                        
+                        <div class="relative pl-4 space-y-6">
+                            <!-- Timeline Item 1 -->
+                            <div class="relative timeline-item">
+                                <div class="absolute -left-[21px] top-1 w-3 h-3 bg-blue-brand rounded-full border-2 border-white shadow-sm"></div>
+                                <p class="text-xs text-panze-muted mb-0.5">Hoje, 14:30</p>
+                                <p class="text-sm font-medium text-panze-text">Anteprojeto validado para avanço da contratação</p>
+                                    <p class="text-xs text-panze-muted mt-1">Por Roberto Alves (Abastecimento Rural)</p>
+                            </div>
+                            
+                            <!-- Timeline Item 2 -->
+                            <div class="relative timeline-item">
+                                <div class="absolute -left-[21px] top-1 w-3 h-3 bg-warning rounded-full border-2 border-white shadow-sm"></div>
+                                <p class="text-xs text-panze-muted mb-0.5">Ontem, 09:15</p>
+                                <p class="text-sm font-medium text-panze-text">Alerta: Licença ambiental pendente de emissão final</p>
+                                <div class="mt-2 p-2 bg-warning-light/50 border border-warning/20 rounded-lg">
+                                    <p class="text-xs text-warning-700">Super Mata solicitou complementação documental. Impacto estimado: 5 dias.</p>
+                                </div>
+                            </div>
+
+                            <!-- Timeline Item 3 -->
+                            <div class="relative timeline-item">
+                                <div class="absolute -left-[21px] top-1 w-3 h-3 bg-gray-300 rounded-full border-2 border-white shadow-sm"></div>
+                                <p class="text-xs text-panze-muted mb-0.5">12 Mai 2024</p>
+                                <p class="text-sm font-medium text-panze-text">Análise topográfica anexada ao processo</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <!-- Section 7: Dependências Rápidas (Bottom Section) -->
+            <div class="mt-6 panze-card p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-panze-text">Dependências Críticas</h3>
+                    <button class="text-sm text-blue-brand font-medium hover:underline flex items-center gap-1">
+                        Ver Grafo Completo <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border border-gray-200 rounded-xl p-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-road"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-panze-muted font-medium">Bloqueia este projeto</p>
+                                        <p class="text-sm font-bold text-panze-text">Gerenciamento de Processo</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-warning-light text-warning">Atrasado</span>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-xl p-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-bus"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-panze-muted font-medium">Bloqueado por este projeto</p>
+                                <p class="text-sm font-bold text-panze-text">Prestação de contas na Controladoria</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">Aguardando</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Plotly Chart Initialization
+        window.addEventListener('load', function() {
+            try {
+                var trace1 = {
+                    x: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    y: [10, 15, 25, 30, 45, 45],
+                    name: 'Avanço Físico (%)',
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: {color: '#2563EB', width: 3, shape: 'spline'},
+                    marker: {size: 8}
+                };
+
+                var trace2 = {
+                    x: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    y: [12, 18, 22, 28, 40, 44],
+                    name: 'Execução Financeira (%)',
+                    type: 'scatter',
+                    mode: 'lines',
+                    fill: 'tozeroy',
+                    line: {color: '#10B981', width: 2, shape: 'spline'},
+                    fillcolor: 'rgba(16, 185, 129, 0.1)'
+                };
+
+                var layout = {
+                    margin: { t: 20, r: 20, b: 40, l: 40 },
+                    plot_bgcolor: 'transparent',
+                    paper_bgcolor: 'transparent',
+                    showlegend: true,
+                    legend: { orientation: 'h', y: -0.2 },
+                    xaxis: { 
+                        showgrid: false,
+                        tickfont: { color: '#6B7280', size: 10 }
+                    },
+                    yaxis: { 
+                        showgrid: true, 
+                        gridcolor: '#E5E7EB',
+                        tickfont: { color: '#6B7280', size: 10 },
+                        range: [0, 100]
+                    }
+                };
+
+                var config = {responsive: true, displayModeBar: false};
+
+                Plotly.newPlot('financeChart', [trace1, trace2], layout, config);
+            } catch(e) {
+                console.error("Chart rendering error:", e);
+            }
+        });
+    </script>
+    <script>
+        window.__MVP_FLOW__ = { type: 'suite', role: 'recursos' };
+    </script>
+    <script src="mvp-flow.js"></script>
+</body>
+</html>
+
+

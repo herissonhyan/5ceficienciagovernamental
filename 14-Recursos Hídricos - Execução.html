@@ -1,0 +1,684 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <script>
+        window.FontAwesomeConfig = {
+          autoReplaceSvg: 'nest'
+        };
+      </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Execução (Timeline & Marcos) - Recursos Hídricos - 5C eficiencia governamental</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-3.1.1.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5', // Indigo 600
+                        secondary: '#6366F1', // Indigo 500
+                        dark: {
+                            bg: '#111827',
+                            card: '#1F2937',
+                            text: '#F9FAFB',
+                            muted: '#9CA3AF',
+                            border: '#374151'
+                        },
+                        light: {
+                            bg: '#F3F4F6',
+                            card: '#FFFFFF',
+                            text: '#111827',
+                            muted: '#6B7280',
+                            border: '#E5E7EB'
+                        },
+                        accent: '#8B5CF6', // Purple 500
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        info: '#3B82F6',
+                        gantt: {
+                            planned: '#E5E7EB', // light gray for planned
+                            actual: '#4F46E5', // primary for actual
+                            delayed: '#EF4444', // danger for delayed
+                            completed: '#10B981' // success for completed
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0,0,0,0.05)',
+                        'card': '0 10px 30px -5px rgba(0,0,0,0.08)',
+                    },
+                    borderRadius: {
+                        'xl': '1rem',
+                        '2xl': '1.5rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: #111827; /* Default Dark Mode */
+            color: #F9FAFB;
+        }
+        
+        /* Light Mode Overrides */
+        body.light-mode {
+            background-color: #F3F4F6;
+            color: #111827;
+        }
+        .light-mode .bg-dark-card { background-color: #FFFFFF; }
+        .light-mode .text-dark-text { color: #111827; }
+        .light-mode .text-dark-muted { color: #6B7280; }
+        .light-mode .border-dark-border { border-color: #E5E7EB; }
+        .light-mode .hover\:bg-dark-border:hover { background-color: #F3F4F6; }
+        .light-mode .bg-dark-bg { background-color: #F3F4F6; }
+
+        ::-webkit-scrollbar { 
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 10px;
+        }
+        .light-mode ::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            color: #9CA3AF;
+            transition: all 0.2s ease;
+            margin: 8px auto;
+        }
+        
+        .sidebar-item.active {
+            background-color: #4F46E5;
+            color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        
+        .sidebar-item:hover:not(.active) {
+            background-color: #374151;
+            color: #F9FAFB;
+        }
+        
+        .light-mode .sidebar-item:hover:not(.active) {
+            background-color: #E5E7EB;
+            color: #111827;
+        }
+
+        /* Gantt Chart Custom Styles */
+        .gantt-row {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            border-bottom: 1px solid #374151;
+        }
+        .light-mode .gantt-row {
+            border-bottom-color: #E5E7EB;
+        }
+        .gantt-header-row {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            border-bottom: 2px solid #374151;
+            background-color: #1F2937;
+        }
+        .light-mode .gantt-header-row {
+            border-bottom-color: #E5E7EB;
+            background-color: #F9FAFB;
+        }
+        .gantt-timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr); /* 12 months */
+            position: relative;
+        }
+        .gantt-grid-line {
+            border-right: 1px dashed #374151;
+            height: 100%;
+        }
+        .light-mode .gantt-grid-line {
+            border-right-color: #E5E7EB;
+        }
+        .gantt-bar-wrapper {
+            position: relative;
+            height: 32px;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        .gantt-bar-planned {
+            position: absolute;
+            height: 8px;
+            background-color: #4B5563;
+            border-radius: 4px;
+            top: 4px;
+            opacity: 0.5;
+        }
+        .light-mode .gantt-bar-planned {
+            background-color: #D1D5DB;
+        }
+        .gantt-bar-actual {
+            position: absolute;
+            height: 16px;
+            background-color: #4F46E5;
+            border-radius: 4px;
+            top: 8px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .gantt-bar-actual.delayed { background-color: #EF4444; }
+        .gantt-bar-actual.completed { background-color: #10B981; }
+        .gantt-bar-actual.warning { background-color: #F59E0B; }
+        
+        .gantt-milestone {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            transform: rotate(45deg);
+            background-color: #8B5CF6;
+            top: 8px;
+            border: 2px solid #111827;
+            z-index: 10;
+        }
+        .light-mode .gantt-milestone { border-color: #FFFFFF; }
+        
+        .gantt-dependency {
+            position: absolute;
+            border-bottom: 2px solid #9CA3AF;
+            border-right: 2px solid #9CA3AF;
+            z-index: 5;
+        }
+
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #4F46E5;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #4F46E5;
+        }
+        
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden light-mode">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-20 bg-dark-card flex flex-col hidden md:flex h-full z-20 py-6 border-r border-dark-border transition-colors duration-200">
+        <div class="flex items-center justify-center mb-8">
+            <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto w-full px-2">
+            <ul class="space-y-2 flex flex-col items-center">
+                <li>
+                    <a href="#" class="sidebar-item" title="Dashboard Estratégico">
+                        <i class="fa-solid fa-chart-pie text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Portfólio de Projetos">
+                        <i class="fa-solid fa-folder-open text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Dependências">
+                        <i class="fa-solid fa-network-wired text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item active" title="Execução">
+                        <i class="fa-solid fa-timeline text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Central de Alertas">
+                        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="mt-8 mb-2 flex justify-center">
+                <div class="w-8 h-px bg-dark-border"></div>
+            </div>
+            
+            <ul class="space-y-2 flex flex-col items-center">
+                <li>
+                    <a href="#" class="sidebar-item" title="Usuários & Perfis">
+                        <i class="fa-solid fa-users-gear text-lg"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Configurações">
+                        <i class="fa-solid fa-gear text-lg"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="mt-auto px-2 pt-4 flex justify-center">
+            <button id="themeToggle" class="sidebar-item">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-dark-bg transition-colors duration-200">
+        
+        <!-- Header -->
+        <header id="header" class="py-6 px-8 flex items-center justify-between z-10 sticky top-0 bg-dark-bg transition-colors duration-200">
+            <div class="flex items-center gap-6">
+                <button class="md:hidden text-dark-muted hover:text-primary">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div>
+                    <h2 class="text-sm font-medium text-dark-muted mb-1">Portfólio de Projetos</h2>
+                    <h1 class="text-3xl font-bold text-dark-text tracking-tight">Execução Setorial (Timeline & Marcos)</h1>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="relative hidden lg:block">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-dark-muted"></i>
+                    </div>
+                    <input type="text" placeholder="Buscar projetos, frentes, equipes..." class="pl-11 pr-4 py-2.5 border border-dark-border rounded-full text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none w-80 bg-dark-card text-dark-text transition-all shadow-sm">
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="w-10 h-10 rounded-full bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-primary transition-all shadow-sm">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full border-2 border-dark-card"></span>
+                    </button>
+                    
+                    <div class="flex items-center gap-3 pl-4 border-l border-dark-border ml-2">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="User" class="w-10 h-10 rounded-full border-2 border-dark-card shadow-sm">
+                        <div class="hidden sm:block">
+                            <p class="text-sm font-semibold text-dark-text">Alex Smith</p>
+                            <p class="text-xs text-dark-muted">Gestor Geral</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto px-8 pb-8 flex flex-col gap-6">
+            
+            <!-- Filters & Actions Bar -->
+            <div id="filter-bar" class="bg-dark-card rounded-2xl p-4 border border-dark-border shadow-soft flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-4 flex-wrap">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-dark-muted">Secretaria:</span>
+                        <select class="bg-dark-bg border border-dark-border text-dark-text text-sm rounded-lg focus:ring-primary focus:border-primary block w-40 p-2">
+                            <option>Recursos Hídricos</option>
+                            <option>Abastecimento Rural</option>
+                            <option>Barragens</option>
+                            <option>Monitoramento</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-dark-muted">Visualização:</span>
+                        <select class="bg-dark-bg border border-dark-border text-dark-text text-sm rounded-lg focus:ring-primary focus:border-primary block w-32 p-2">
+                            <option>Mensal</option>
+                            <option>Semanal</option>
+                            <option>Trimestral</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-dark-muted">Status:</span>
+                        <select class="bg-dark-bg border border-dark-border text-dark-text text-sm rounded-lg focus:ring-primary focus:border-primary block w-32 p-2">
+                            <option>Todos</option>
+                            <option>Em Atraso</option>
+                            <option>No Prazo</option>
+                            <option>Concluído</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <!-- Toggle Switch for Baseline -->
+                    <div class="flex items-center gap-2 mr-4">
+                        <span class="text-sm text-dark-muted">Mostrar Linha de Base</span>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="baseline-toggle" checked class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out z-10"/>
+                            <label for="baseline-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    
+                    <button class="px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-sm font-medium text-dark-text hover:bg-dark-border flex items-center gap-2 transition-colors">
+                        <i class="fa-solid fa-sliders"></i> Filtros Avançados
+                    </button>
+                    <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-secondary flex items-center gap-2 transition-colors shadow-sm">
+                        <i class="fa-solid fa-plus"></i> Novo Marco
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Timeline / Gantt Area -->
+            <div class="flex-1 flex gap-6 min-h-[600px]">
+                
+                <!-- Timeline Container (Left 2/3) -->
+                <div class="flex-1 bg-dark-card rounded-2xl border border-dark-border shadow-soft flex flex-col overflow-hidden">
+                    
+                    <!-- Gantt Header -->
+                    <div class="gantt-header-row p-4 items-center">
+                        <div class="font-semibold text-dark-text text-sm pl-2">Projetos e Etapas</div>
+                        <div class="gantt-timeline-grid h-full items-center">
+                            <div class="text-center text-xs font-medium text-dark-muted">Jan</div>
+                            <div class="text-center text-xs font-medium text-dark-muted">Fev</div>
+                            <div class="text-center text-xs font-medium text-dark-muted">Mar</div>
+                            <div class="text-center text-xs font-medium text-dark-muted">Abr</div>
+                            <div class="text-center text-xs font-medium text-dark-muted">Mai</div>
+                            <div class="text-center text-xs font-medium text-dark-muted">Jun</div>
+                            <div class="text-center text-xs font-medium text-dark-muted">Jul</div>
+                            <div class="text-center text-xs font-medium text-dark-muted">Ago</div>
+                            <div class="text-center text-xs font-medium text-dark-muted">Set</div>
+                            <div class="text-center text-xs font-medium text-dark-muted">Out</div>
+                            <div class="text-center text-xs font-medium text-dark-muted">Nov</div>
+                            <div class="text-center text-xs font-medium text-dark-muted">Dez</div>
+                        </div>
+                    </div>
+
+                    <!-- Gantt Body -->
+                    <div class="flex-1 overflow-y-auto overflow-x-hidden relative">
+                        <!-- Background Grid Lines -->
+                        <div class="absolute inset-0 left-[300px] gantt-timeline-grid pointer-events-none">
+                            <div class="gantt-grid-line"></div>
+                            <div class="gantt-grid-line"></div>
+                            <div class="gantt-grid-line"></div>
+                            <div class="gantt-grid-line"></div>
+                            <div class="gantt-grid-line"></div>
+                            <div class="gantt-grid-line"></div>
+                            <div class="gantt-grid-line"></div>
+                            <div class="gantt-grid-line"></div>
+                            <div class="gantt-grid-line"></div>
+                            <div class="gantt-grid-line"></div>
+                            <div class="gantt-grid-line"></div>
+                            <div class="gantt-grid-line"></div>
+                        </div>
+
+                        <!-- Project 1 (Expanded) -->
+                        <div class="gantt-row hover:bg-dark-bg/50 transition-colors">
+                            <div class="p-4 flex items-center gap-3 border-r border-dark-border">
+                                <button class="text-dark-muted hover:text-primary"><i class="fa-solid fa-chevron-down text-xs"></i></button>
+                                <div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary"><i class="fa-solid fa-water"></i></div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-sm font-semibold text-dark-text truncate">Sistema de Abastecimento e Tratamento de Água do Assentamento Bonifácio</h3>
+                                    <p class="text-[10px] text-dark-muted">Abastecimento Rural • 62%</p>
+                                </div>
+                            </div>
+                            <div class="p-2 relative">
+                                <!-- Project Summary Bar -->
+                                <div class="gantt-bar-wrapper">
+                                    <div class="gantt-bar-planned" style="left: 0%; width: 75%;"></div>
+                                    <div class="gantt-bar-actual warning" style="left: 0%; width: 65%;">65%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tasks for Project 1 -->
+                        <div class="gantt-row bg-dark-bg/20">
+                            <div class="py-3 pr-4 pl-12 flex items-center gap-3 border-r border-dark-border">
+                                <div class="w-1.5 h-1.5 rounded-full bg-success"></div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-xs font-medium text-dark-text truncate">Licitação e mobilização</h4>
+                                    <p class="text-[10px] text-dark-muted">Concluído</p>
+                                </div>
+                            </div>
+                            <div class="p-2 relative">
+                                <div class="gantt-bar-wrapper">
+                                    <div class="gantt-bar-planned" style="left: 0%; width: 16.6%;"></div>
+                                    <div class="gantt-bar-actual completed" style="left: 0%; width: 16.6%;">100%</div>
+                                    <div class="gantt-milestone" style="left: 16.6%;" title="Contrato Assinado"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="gantt-row bg-dark-bg/20">
+                            <div class="py-3 pr-4 pl-12 flex items-center gap-3 border-r border-dark-border">
+                                <div class="w-1.5 h-1.5 rounded-full bg-danger"></div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-xs font-medium text-dark-text truncate">Canalização do trecho central</h4>
+                                    <p class="text-[10px] text-danger">Atrasado (15 dias)</p>
+                                </div>
+                            </div>
+                            <div class="p-2 relative">
+                                <div class="gantt-bar-wrapper">
+                                    <div class="gantt-bar-planned" style="left: 16.6%; width: 25%;"></div>
+                                    <div class="gantt-bar-actual delayed" style="left: 16.6%; width: 20%;">80%</div>
+                                    <!-- Dependency Line Example (Visual only for mock) -->
+                                    <svg class="absolute top-4 left-[36.6%] w-10 h-10 pointer-events-none" style="z-index: 5;">
+                                        <path d="M 0 0 L 10 0 L 10 20 L 40 20" fill="none" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="2,2"/>
+                                        <polygon points="40,20 35,17 35,23" fill="#9CA3AF"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="gantt-row bg-dark-bg/20">
+                            <div class="py-3 pr-4 pl-12 flex items-center gap-3 border-r border-dark-border">
+                                <div class="w-1.5 h-1.5 rounded-full bg-dark-muted"></div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-xs font-medium text-dark-text truncate">Automação e sensores de vazão</h4>
+                                    <p class="text-[10px] text-dark-muted">Não Iniciado</p>
+                                </div>
+                            </div>
+                            <div class="p-2 relative">
+                                <div class="gantt-bar-wrapper">
+                                    <div class="gantt-bar-planned" style="left: 41.6%; width: 25%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project 2 (Collapsed) -->
+                        <div class="gantt-row hover:bg-dark-bg/50 transition-colors border-t-4 border-t-dark-bg">
+                            <div class="p-4 flex items-center gap-3 border-r border-dark-border">
+                                <button class="text-dark-muted hover:text-primary"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                                <div class="w-8 h-8 rounded bg-success/10 flex items-center justify-center text-success"><i class="fa-solid fa-road"></i></div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-sm font-semibold text-dark-text truncate">Gerenciamento de Processo</h3>
+                                    <p class="text-[10px] text-dark-muted">Barragens • 85%</p>
+                                </div>
+                            </div>
+                            <div class="p-2 relative">
+                                <div class="gantt-bar-wrapper">
+                                    <div class="gantt-bar-planned" style="left: 8.3%; width: 50%;"></div>
+                                    <div class="gantt-bar-actual completed" style="left: 8.3%; width: 42.5%;">85%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                         <!-- Project 3 (Collapsed) -->
+                         <div class="gantt-row hover:bg-dark-bg/50 transition-colors border-t-4 border-t-dark-bg">
+                            <div class="p-4 flex items-center gap-3 border-r border-dark-border">
+                                <button class="text-dark-muted hover:text-primary"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                                <div class="w-8 h-8 rounded bg-info/10 flex items-center justify-center text-info"><i class="fa-solid fa-school"></i></div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-sm font-semibold text-dark-text truncate">Prestação de Contas</h3>
+                                    <p class="text-[10px] text-dark-muted">Monitoramento • 30%</p>
+                                </div>
+                            </div>
+                            <div class="p-2 relative">
+                                <div class="gantt-bar-wrapper">
+                                    <div class="gantt-bar-planned" style="left: 33.3%; width: 66.6%;"></div>
+                                    <div class="gantt-bar-actual" style="left: 33.3%; width: 20%;">30%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Right Panel: Execution Details & Re-planning (Right 1/3) -->
+                <div class="w-96 bg-dark-card rounded-2xl border border-dark-border shadow-soft flex flex-col overflow-hidden flex-shrink-0">
+                    
+                    <div class="p-5 border-b border-dark-border bg-dark-bg/50 flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-dark-text uppercase tracking-wider">Detalhes da Execução</h3>
+                        <div class="flex gap-2">
+                             <button class="text-dark-muted hover:text-primary transition-colors"><i class="fa-solid fa-pen-to-square"></i></button>
+                             <button class="text-dark-muted hover:text-dark-text transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto p-5 space-y-6">
+                        
+                        <!-- Selected Task Info -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-1 rounded text-[10px] font-bold bg-danger/10 text-danger border border-danger/20">ATRASADO</span>
+                                <span class="text-xs text-dark-muted">Etapa</span>
+                            </div>
+                            <h2 class="text-lg font-bold text-dark-text leading-tight mb-1">Canalização do trecho central</h2>
+                            <p class="text-xs text-dark-muted">Projeto: Sistema de Abastecimento e Tratamento de Água do Assentamento Bonifácio</p>
+                        </div>
+
+                        <!-- Progress & Dates -->
+                        <div class="bg-dark-bg p-4 rounded-xl border border-dark-border space-y-4">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-dark-muted">Progresso Real vs Planejado</span>
+                                    <span class="font-bold text-dark-text">80% / 100%</span>
+                                </div>
+                                <div class="w-full bg-dark-border rounded-full h-2">
+                                    <div class="bg-danger h-2 rounded-full" style="width: 80%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 pt-2">
+                                <div>
+                                    <p class="text-[10px] text-dark-muted uppercase font-semibold mb-1">Início (Plan / Real)</p>
+                                    <p class="text-xs font-medium text-dark-text">01/Mar / 05/Mar</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-dark-muted uppercase font-semibold mb-1">Fim (Plan / Previsto)</p>
+                                    <p class="text-xs font-medium text-danger">30/Mai / 15/Jun</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Re-planning Form (Visible to Gestor) -->
+                        <div>
+                            <h4 class="text-sm font-semibold text-dark-text border-b border-dark-border pb-2 mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-day text-primary"></i> Replanejamento
+                            </h4>
+                            <form class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-dark-muted mb-1">Nova Data Prevista</label>
+                                    <input type="date" value="2024-06-15" class="w-full bg-dark-bg border border-dark-border text-dark-text text-sm rounded-lg focus:ring-primary focus:border-primary p-2">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-dark-muted mb-1">Justificativa do Atraso</label>
+                                    <select class="w-full bg-dark-bg border border-dark-border text-dark-text text-sm rounded-lg focus:ring-primary focus:border-primary p-2">
+                                        <option>Condições Climáticas</option>
+                                        <option>Atraso de Fornecedor</option>
+                                        <option>Revisão de Projeto</option>
+                                        <option>Falta de Recursos</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-dark-muted mb-1">Observações / Plano de Ação</label>
+                                    <textarea rows="2" class="w-full bg-dark-bg border border-dark-border text-dark-text text-sm rounded-lg focus:ring-primary focus:border-primary p-2" placeholder="Descreva as ações para mitigação..."></textarea>
+                                </div>
+                                <button type="button" class="w-full py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-secondary transition-colors shadow-sm mt-2">
+                                    Solicitar Aprovação de Replanejamento
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Updates History -->
+                        <div>
+                            <h4 class="text-sm font-semibold text-dark-text border-b border-dark-border pb-2 mb-3">Histórico de Atualizações</h4>
+                            <div class="space-y-4">
+                                <!-- Update Item -->
+                                <div class="flex gap-3">
+                                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" class="w-6 h-6 rounded-full mt-1" alt="User">
+                                    <div>
+                                        <div class="flex items-baseline gap-2">
+                                            <span class="text-xs font-semibold text-dark-text">Sesar</span>
+                                            <span class="text-[10px] text-dark-muted">Há 2 dias</span>
+                                        </div>
+                                        <p class="text-xs text-dark-text mt-1">Progresso atualizado de 75% para 80%. Chuvas intensas atrasaram a concretagem final.</p>
+                                    </div>
+                                </div>
+                                <!-- Update Item -->
+                                <div class="flex gap-3">
+                                    <div class="w-6 h-6 rounded-full bg-dark-bg border border-dark-border flex items-center justify-center mt-1">
+                                        <i class="fa-solid fa-robot text-[10px] text-dark-muted"></i>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-baseline gap-2">
+                                            <span class="text-xs font-semibold text-dark-text">Sistema</span>
+                                            <span class="text-[10px] text-dark-muted">Há 5 dias</span>
+                                        </div>
+                                        <p class="text-xs text-dark-text mt-1">Alerta gerado: Risco de atraso identificado com base na velocidade de execução.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 relative">
+                                <input type="text" placeholder="Adicionar comentário ou atualização..." class="w-full bg-dark-bg border border-dark-border text-dark-text text-sm rounded-lg focus:ring-primary focus:border-primary p-2 pr-10">
+                                <button class="absolute right-2 top-2 text-primary hover:text-secondary">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            const isLight = body.classList.contains('light-mode');
+            themeToggle.innerHTML = isLight ? '<i class="fa-solid fa-sun text-warning"></i>' : '<i class="fa-solid fa-moon"></i>';
+        });
+
+        // Initialize theme based on class (currently set to light-mode by default in body)
+        const isLightInit = body.classList.contains('light-mode');
+        themeToggle.innerHTML = isLightInit ? '<i class="fa-solid fa-sun text-warning"></i>' : '<i class="fa-solid fa-moon"></i>';
+    </script>
+    <script>
+        window.__MVP_FLOW__ = { type: 'suite', role: 'recursos' };
+    </script>
+    <script src="mvp-flow.js"></script>
+</body>
+</html>
+

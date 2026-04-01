@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <script>
+        window.FontAwesomeConfig = {
+          autoReplaceSvg: 'nest'
+        };
+      </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central de Alertas e Riscos - 5C eficiencia governamental</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-3.1.1.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#14b8a6', // Teal 500 (matching inspiration)
+                        secondary: '#0f766e', // Teal 700
+                        dark: {
+                            bg: '#111827',
+                            card: '#1F2937',
+                            text: '#F9FAFB',
+                            muted: '#9CA3AF',
+                            border: '#374151'
+                        },
+                        light: {
+                            bg: '#F8FAFC', // Slate 50
+                            card: '#FFFFFF',
+                            text: '#0F172A', // Slate 900
+                            muted: '#64748B', // Slate 500
+                            border: '#E2E8F0' // Slate 200
+                        },
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        info: '#3B82F6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    },
+                    borderRadius: {
+                        'xl': '0.75rem',
+                        '2xl': '1rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: #F8FAFC; /* Light Mode Default */
+            color: #0F172A;
+        }
+
+        /* Dark Mode Overrides */
+        body.dark-mode {
+            background-color: #111827;
+            color: #F9FAFB;
+        }
+        .dark-mode .bg-light-card { background-color: #1F2937; }
+        .dark-mode .text-light-text { color: #F9FAFB; }
+        .dark-mode .text-light-muted { color: #9CA3AF; }
+        .dark-mode .border-light-border { border-color: #374151; }
+        .dark-mode .bg-light-bg { background-color: #111827; }
+        .dark-mode .hover\:bg-light-border:hover { background-color: #374151; }
+
+        ::-webkit-scrollbar { 
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 10px;
+        }
+        .dark-mode ::-webkit-scrollbar-thumb {
+            background: #4B5563;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: #64748B;
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        
+        .sidebar-item i {
+            width: 20px;
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-item.active {
+            background-color: #14b8a6;
+            color: #FFFFFF;
+        }
+        
+        .sidebar-item:hover:not(.active) {
+            background-color: #F1F5F9;
+            color: #0F172A;
+        }
+        
+        .dark-mode .sidebar-item:hover:not(.active) {
+            background-color: #374151;
+            color: #F9FAFB;
+        }
+
+        .alert-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .alert-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 bg-light-card flex flex-col hidden md:flex h-full z-20 border-r border-light-border transition-colors duration-200">
+        <div class="p-6 flex items-center gap-3 border-b border-light-border">
+            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
+                <i class="fa-solid fa-building-columns text-sm"></i>
+            </div>
+                    <span class="font-bold text-xl tracking-tight text-light-text">5C eficiencia governamental</span>
+        </div>
+
+        <div class="px-4 py-2 mt-4 text-xs font-semibold text-light-muted uppercase tracking-wider">
+            Menu Principal
+        </div>
+
+        <nav class="flex-1 overflow-y-auto w-full px-4 pt-2">
+            <ul class="space-y-1">
+                <li>
+                    <a href="#" class="sidebar-item" title="Dashboard Estratégico">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Dashboard Estratégico</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Portfólio de Projetos">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <span>Portfólio de Projetos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Dependências">
+                        <i class="fa-solid fa-network-wired"></i>
+                        <span>Dependências</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Execução">
+                        <i class="fa-solid fa-timeline"></i>
+                        <span>Execução</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item active" title="Central de Alertas">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Central de Alertas</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="px-4 py-2 mt-6 text-xs font-semibold text-light-muted uppercase tracking-wider">
+                Administração
+            </div>
+            
+            <ul class="space-y-1 mt-2">
+                <li>
+                    <a href="#" class="sidebar-item" title="Usuários & Perfis">
+                        <i class="fa-solid fa-users-gear"></i>
+                        <span>Usuários & Perfis</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" title="Configurações">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Configurações</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="p-4 border-t border-light-border flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="User" class="w-9 h-9 rounded-full border border-light-border">
+                <div>
+                    <p class="text-sm font-semibold text-light-text">Alex Smith</p>
+                    <p class="text-xs text-light-muted">Gestor Geral</p>
+                </div>
+            </div>
+            <button id="themeToggle" class="text-light-muted hover:text-primary transition-colors">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-light-bg transition-colors duration-200">
+        
+        <!-- Header -->
+        <header id="header" class="py-4 px-8 flex items-center justify-between z-10 sticky top-0 bg-light-card border-b border-light-border transition-colors duration-200">
+            <div class="flex items-center gap-4">
+                <button class="md:hidden text-light-muted hover:text-primary">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-2xl font-bold text-light-text tracking-tight">Central de Alertas e Riscos</h1>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="relative hidden lg:block">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-light-muted text-sm"></i>
+                    </div>
+                    <input type="text" placeholder="Buscar alertas, projetos..." class="pl-9 pr-4 py-2 border border-light-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none w-64 bg-light-bg text-light-text transition-all">
+                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                        <span class="text-xs text-light-muted border border-light-border rounded px-1.5 py-0.5">⌘K</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <button class="w-9 h-9 rounded-full bg-light-bg border border-light-border flex items-center justify-center text-light-muted hover:text-primary transition-all relative">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full border-2 border-light-bg"></span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto p-8 flex flex-col gap-6">
+            
+            <!-- Dashboard KPIs -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-light-card p-5 rounded-xl border border-light-border shadow-sm flex flex-col gap-2">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-2 text-light-muted text-sm font-medium">
+                            <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+                            Alertas Críticos
+                        </div>
+                        <button class="text-light-muted hover:text-light-text"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                    </div>
+                    <div class="flex items-end gap-3 mt-2">
+                        <span class="text-3xl font-bold text-light-text">24</span>
+                        <span class="text-xs font-medium text-danger bg-danger/10 px-2 py-1 rounded-md flex items-center gap-1 mb-1">
+                            <i class="fa-solid fa-arrow-trend-up"></i> +12%
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bg-light-card p-5 rounded-xl border border-light-border shadow-sm flex flex-col gap-2">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-2 text-light-muted text-sm font-medium">
+                            <i class="fa-solid fa-clock text-warning"></i>
+                            SLA Estourado
+                        </div>
+                    </div>
+                    <div class="flex items-end gap-3 mt-2">
+                        <span class="text-3xl font-bold text-light-text">8</span>
+                        <span class="text-xs font-medium text-success bg-success/10 px-2 py-1 rounded-md flex items-center gap-1 mb-1">
+                            <i class="fa-solid fa-arrow-trend-down"></i> -5%
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bg-light-card p-5 rounded-xl border border-light-border shadow-sm flex flex-col gap-2">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-2 text-light-muted text-sm font-medium">
+                            <i class="fa-solid fa-link-slash text-info"></i>
+                            Dependências Bloqueadas
+                        </div>
+                    </div>
+                    <div class="flex items-end gap-3 mt-2">
+                        <span class="text-3xl font-bold text-light-text">15</span>
+                    </div>
+                </div>
+
+                <div class="bg-light-card p-5 rounded-xl border border-light-border shadow-sm flex flex-col gap-2">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-2 text-light-muted text-sm font-medium">
+                            <i class="fa-solid fa-check-double text-success"></i>
+                            Resolvidos (7 dias)
+                        </div>
+                    </div>
+                    <div class="flex items-end gap-3 mt-2">
+                        <span class="text-3xl font-bold text-light-text">142</span>
+                        <span class="text-xs font-medium text-success bg-success/10 px-2 py-1 rounded-md flex items-center gap-1 mb-1">
+                            <i class="fa-solid fa-arrow-trend-up"></i> +28%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Layout: Filters & List vs Details -->
+            <div class="flex flex-col lg:flex-row gap-6 h-[calc(100vh-280px)] min-h-[600px]">
+                
+                <!-- Left Column: Alert List & Filters -->
+                <div class="w-full lg:w-1/2 xl:w-7/12 flex flex-col gap-4">
+                    
+                    <!-- Filters -->
+                    <div class="bg-light-card p-4 rounded-xl border border-light-border shadow-sm flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <select class="bg-light-bg border border-light-border text-light-text text-sm rounded-lg focus:ring-primary focus:border-primary block w-32 p-2">
+                                <option>Prioridade</option>
+                                <option>Alta</option>
+                                <option>Média</option>
+                                <option>Baixa</option>
+                            </select>
+                            <select class="bg-light-bg border border-light-border text-light-text text-sm rounded-lg focus:ring-primary focus:border-primary block w-32 p-2">
+                                <option>Tipo</option>
+                                <option>Atraso</option>
+                                <option>SLA</option>
+                                <option>Dependência</option>
+                            </select>
+                            <select class="bg-light-bg border border-light-border text-light-text text-sm rounded-lg focus:ring-primary focus:border-primary block w-40 p-2">
+                                <option>Secretaria</option>
+                                <option>Saúde</option>
+                                <option>Obras</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="px-3 py-2 bg-light-bg border border-light-border rounded-lg text-sm font-medium text-light-text hover:bg-light-border flex items-center gap-2">
+                                <i class="fa-solid fa-sliders"></i>
+                            </button>
+                            <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-secondary transition-colors shadow-sm flex items-center gap-2">
+                                <i class="fa-solid fa-gear"></i> Regras
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Alert List -->
+                    <div class="bg-light-card rounded-xl border border-light-border shadow-sm flex-1 overflow-y-auto flex flex-col">
+                        
+                        <!-- Alert Item 1 (Active) -->
+                        <div class="p-4 border-b border-light-border bg-primary/5 cursor-pointer hover:bg-light-bg transition-colors flex gap-4 relative">
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+                            <div class="mt-1">
+                                <div class="w-8 h-8 rounded-full bg-danger/10 flex items-center justify-center text-danger">
+                                    <i class="fa-solid fa-clock text-sm"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h3 class="text-sm font-bold text-light-text">Atraso Crítico: Concretagem Fundação</h3>
+                                    <span class="text-xs text-light-muted">Há 2h</span>
+                                </div>
+                                <p class="text-xs text-light-muted mb-2">Projeto: Novo Hospital Municipal • Sec. Obras</p>
+                                <div class="flex items-center gap-3">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-danger text-white">ALTA PRIORIDADE</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-light-bg border border-light-border text-light-text">SLA: -2 dias</span>
+                                    <div class="flex items-center gap-1 text-[10px] text-light-muted ml-auto">
+                                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" class="w-4 h-4 rounded-full" alt="Assignee">
+                                        <span>Maria C.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alert Item 2 -->
+                        <div class="p-4 border-b border-light-border cursor-pointer hover:bg-light-bg transition-colors flex gap-4">
+                            <div class="mt-1">
+                                <div class="w-8 h-8 rounded-full bg-info/10 flex items-center justify-center text-info">
+                                    <i class="fa-solid fa-link-slash text-sm"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h3 class="text-sm font-semibold text-light-text">Dependência Bloqueada: Licença Ambiental</h3>
+                                    <span class="text-xs text-light-muted">Ontem</span>
+                                </div>
+                                <p class="text-xs text-light-muted mb-2">Projeto: Pavimentação Zona Sul • Sec. Meio Ambiente</p>
+                                <div class="flex items-center gap-3">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-warning text-white">MÉDIA PRIORIDADE</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-light-bg border border-light-border text-light-text">Bloqueia 3 tarefas</span>
+                                    <button class="text-[10px] font-medium text-primary hover:underline ml-auto">Atribuir</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alert Item 3 -->
+                        <div class="p-4 border-b border-light-border cursor-pointer hover:bg-light-bg transition-colors flex gap-4">
+                            <div class="mt-1">
+                                <div class="w-8 h-8 rounded-full bg-warning/10 flex items-center justify-center text-warning">
+                                    <i class="fa-solid fa-flag text-sm"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h3 class="text-sm font-semibold text-light-text">Marco Crítico Próximo: Entrega Equipamentos</h3>
+                                    <span class="text-xs text-light-muted">2 dias atrás</span>
+                                </div>
+                                <p class="text-xs text-light-muted mb-2">Projeto: Reforma Escolas • Sec. Educação</p>
+                                <div class="flex items-center gap-3">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-warning text-white">MÉDIA PRIORIDADE</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-light-bg border border-light-border text-light-text">Prazo: 15/Nov</span>
+                                    <div class="flex items-center gap-1 text-[10px] text-light-muted ml-auto">
+                                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-2.jpg" class="w-4 h-4 rounded-full" alt="Assignee">
+                                        <span>João P.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Alert Details & Actions -->
+                <div class="w-full lg:w-1/2 xl:w-5/12 bg-light-card rounded-xl border border-light-border shadow-sm flex flex-col overflow-hidden">
+                    
+                    <!-- Detail Header -->
+                    <div class="p-5 border-b border-light-border flex justify-between items-start bg-light-bg/50">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-danger text-white">ALTA PRIORIDADE</span>
+                                <span class="text-xs font-medium text-light-muted bg-light-border px-2 py-0.5 rounded">ID: #AL-4092</span>
+                            </div>
+                            <h2 class="text-lg font-bold text-light-text leading-tight">Atraso Crítico: Concretagem Fundação</h2>
+                            <p class="text-sm text-light-muted mt-1">Projeto: Novo Hospital Municipal</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="w-8 h-8 rounded border border-light-border flex items-center justify-center text-light-muted hover:text-primary hover:border-primary transition-colors bg-light-card">
+                                <i class="fa-solid fa-share-nodes text-sm"></i>
+                            </button>
+                            <button class="w-8 h-8 rounded border border-light-border flex items-center justify-center text-light-muted hover:text-danger hover:border-danger transition-colors bg-light-card">
+                                <i class="fa-solid fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto p-5">
+                        
+                        <!-- Alert Context -->
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="p-3 bg-light-bg rounded-lg border border-light-border">
+                                <p class="text-[10px] text-light-muted uppercase font-semibold mb-1">Regra Violada</p>
+                                <p class="text-sm font-medium text-light-text">Atraso > 15% do cronograma base</p>
+                            </div>
+                            <div class="p-3 bg-light-bg rounded-lg border border-light-border">
+                                <p class="text-[10px] text-light-muted uppercase font-semibold mb-1">Impacto Estimado</p>
+                                <p class="text-sm font-medium text-danger">Empurra marco final em 12 dias</p>
+                            </div>
+                        </div>
+
+                        <!-- Workflow Actions -->
+                        <div class="mb-6">
+                            <h3 class="text-sm font-semibold text-light-text border-b border-light-border pb-2 mb-3">Plano de Ação</h3>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-3 border border-light-border rounded-lg bg-light-bg">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-light-border flex items-center justify-center">
+                                            <i class="fa-regular fa-user text-light-muted"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-medium text-light-text">Responsável</p>
+                                            <p class="text-sm font-semibold text-primary">Maria Costa (Obras)</p>
+                                        </div>
+                                    </div>
+                                    <button class="text-xs text-light-muted hover:text-primary">Alterar</button>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-medium text-light-muted mb-1">Definir Mitigação</label>
+                                    <textarea rows="3" class="w-full bg-light-bg border border-light-border text-light-text text-sm rounded-lg focus:ring-primary focus:border-primary p-3" placeholder="Descreva as ações para contornar o atraso..."></textarea>
+                                </div>
+
+                                <div class="flex gap-3">
+                                    <button class="flex-1 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-secondary transition-colors shadow-sm">
+                                        Salvar Plano
+                                    </button>
+                                    <button class="flex-1 py-2 bg-success text-white rounded-lg text-sm font-medium hover:bg-success/90 transition-colors shadow-sm flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-check"></i> Encerrar Alerta
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Audit Feed & Mentions -->
+                        <div>
+                            <div class="flex justify-between items-center border-b border-light-border pb-2 mb-4">
+                                <h3 class="text-sm font-semibold text-light-text">Feed e Auditoria</h3>
+                                <button class="text-xs text-primary hover:underline">Ver tudo</button>
+                            </div>
+                            
+                            <div class="relative pl-4 space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-light-border before:to-transparent">
+                                
+                                <!-- Feed Item: System -->
+                                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                                    <div class="flex items-center justify-center w-6 h-6 rounded-full border border-light-border bg-light-card text-light-muted shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm z-10">
+                                        <i class="fa-solid fa-robot text-[10px]"></i>
+                                    </div>
+                                    <div class="w-[calc(100%-2.5rem)] md:w-[calc(50%-1.5rem)] p-3 rounded-lg border border-light-border bg-light-bg shadow-sm">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <span class="text-xs font-bold text-light-text">Sistema</span>
+                                            <span class="text-[10px] text-light-muted">Hoje, 08:30</span>
+                                        </div>
+                                        <p class="text-xs text-light-text">Alerta gerado automaticamente. Limiar de 15% de atraso excedido na etapa de Fundação.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Feed Item: User Comment -->
+                                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                                    <div class="flex items-center justify-center w-6 h-6 rounded-full border border-light-border bg-light-card shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm z-10 overflow-hidden">
+                                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="Alex">
+                                    </div>
+                                    <div class="w-[calc(100%-2.5rem)] md:w-[calc(50%-1.5rem)] p-3 rounded-lg border border-light-border bg-light-card shadow-sm">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <span class="text-xs font-bold text-light-text">Alex Smith</span>
+                                            <span class="text-[10px] text-light-muted">Hoje, 09:15</span>
+                                        </div>
+                                        <p class="text-xs text-light-text"><span class="text-primary font-medium">@Maria Costa</span>, por favor verificar disponibilidade de equipe extra para o fim de semana.</p>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- Comment Input -->
+                            <div class="mt-4 relative flex items-center">
+                                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" class="w-8 h-8 rounded-full border border-light-border absolute left-2" alt="Current User">
+                                <input type="text" placeholder="Adicionar comentário ou @menção..." class="w-full bg-light-bg border border-light-border text-light-text text-sm rounded-full focus:ring-primary focus:border-primary py-2 pl-12 pr-10">
+                                <button class="absolute right-3 text-light-muted hover:text-primary transition-colors">
+                                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            themeToggle.innerHTML = isDark ? '<i class="fa-solid fa-sun text-warning"></i>' : '<i class="fa-solid fa-moon"></i>';
+        });
+
+        // Initialize Plotly Charts (Dummy data for KPI visual if needed, though KPIs are cards here based on layout)
+        // Kept script tag ready as requested by previous contexts, though not explicitly used in this specific screen layout.
+    </script>
+    <script>
+        window.__MVP_FLOW__ = { type: 'suite', role: 'admin' };
+    </script>
+    <script src="mvp-flow.js"></script>
+</body>
+</html>
