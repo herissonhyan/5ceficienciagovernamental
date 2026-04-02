@@ -250,7 +250,7 @@
                         <i class="fa-regular fa-bell"></i>
                         <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full border border-white"></span>
                     </button>
-                    <button class="flex items-center gap-2 bg-blue-brand hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ml-2">
+                    <button id="open-new-project-modal-admin" class="flex items-center gap-2 bg-blue-brand hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ml-2">
                         <i class="fa-solid fa-plus"></i> Novo Projeto
                     </button>
                 </div>
@@ -469,6 +469,56 @@
         </div>
     </main>
 
+    <div id="new-project-modal-admin" class="fixed inset-0 bg-slate-950/45 z-40 hidden items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-primary">Criar Novo Projeto</h2>
+                    <p class="text-sm text-gray-500">Cadastre uma nova iniciativa para acompanhamento no portfólio.</p>
+                </div>
+                <button id="close-new-project-modal-admin" class="w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:text-primary hover:border-blue-200 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Projeto</label>
+                    <input type="text" placeholder="Ex.: Sistema de abastecimento e tratamento de água" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Secretaria</label>
+                    <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none bg-white">
+                        <option>Gabinete do Prefeito</option>
+                        <option>Saúde</option>
+                        <option>Educação</option>
+                        <option>Infraestrutura</option>
+                        <option>Recursos Hídricos</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Responsável</label>
+                    <input type="text" placeholder="Nome do responsável" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Prazo Inicial</label>
+                    <input type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Orçamento Estimado</label>
+                    <input type="text" placeholder="R$ 0,00" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                    <textarea rows="4" placeholder="Resumo do objetivo, entregas e contexto do projeto." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-brand/20 focus:border-blue-brand outline-none"></textarea>
+                </div>
+                <div class="md:col-span-2 flex items-center justify-end gap-3 pt-2">
+                    <button type="button" data-close-modal="admin" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
+                    <button type="button" class="px-4 py-2 bg-blue-brand text-white rounded-lg text-sm font-medium hover:bg-blue-700">Salvar Projeto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Overlay / Drawer for Project Details (Hidden by default, structure provided for context) -->
     <!-- 
     <div class="fixed inset-0 bg-black/30 z-40 hidden"></div>
@@ -485,5 +535,199 @@
         window.__MVP_FLOW__ = { type: 'suite', role: 'admin' };
     </script>
     <script src="mvp-flow.js"></script>
+    <script>
+        (function () {
+            const STORAGE_KEY = 'poc_portfolio_projects_admin';
+            const modal = document.getElementById('new-project-modal-admin');
+            const openBtn = document.getElementById('open-new-project-modal-admin');
+            const closeBtn = document.getElementById('close-new-project-modal-admin');
+            const cancelBtn = document.querySelector('[data-close-modal="admin"]');
+            const form = modal?.querySelector('form');
+            const tableBody = document.querySelector('#projects-table-grid tbody');
+            const countBadge = document.querySelector('#projects-table-grid .bg-gray-200');
+            const footerCount = document.querySelector('#projects-table-grid .text-sm.text-gray-500');
+
+            if (!modal || !openBtn || !form || !tableBody) return;
+
+            const fields = form.querySelectorAll('input, select, textarea');
+            const [nameInput, secretariaSelect, responsavelInput, prazoInput, orcamentoInput, descricaoInput] = fields;
+            const saveBtn = form.querySelector('button.bg-blue-brand');
+            const baseCount = tableBody.querySelectorAll('tr').length;
+
+            const normalize = (value) => String(value || '').trim();
+            const escapeHtml = (value) =>
+                String(value || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            const formatDate = (value) => {
+                if (!value) return '-';
+                const [year, month, day] = value.split('-');
+                return year && month && day ? `${day}/${month}/${year}` : value;
+            };
+            const getProjects = () => {
+                try {
+                    return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]');
+                } catch {
+                    return [];
+                }
+            };
+            const setProjects = (projects) => {
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+            };
+
+            const agentsSection = document.createElement('div');
+            agentsSection.className = 'md:col-span-2 border border-gray-200 rounded-xl p-4 bg-gray-50';
+            agentsSection.innerHTML = `
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                        <h3 class="text-sm font-semibold text-primary">Agentes Condicionantes</h3>
+                        <p class="text-xs text-gray-500">Informe os órgãos, etapas ou frentes que condicionam o andamento do projeto.</p>
+                    </div>
+                    <button type="button" id="add-agent-row-admin" class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100">
+                        <i class="fa-solid fa-plus mr-1"></i> Adicionar
+                    </button>
+                </div>
+                <div id="agent-list-admin" class="space-y-3"></div>
+            `;
+            descricaoInput.closest('.md\\:col-span-2')?.insertAdjacentElement('afterend', agentsSection);
+
+            const agentList = document.getElementById('agent-list-admin');
+            const addAgentRowBtn = document.getElementById('add-agent-row-admin');
+
+            const createAgentRow = (agent = {}) => {
+                const row = document.createElement('div');
+                row.className = 'grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end agent-row-admin';
+                row.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Condicionante</label>
+                        <input type="text" value="${escapeHtml(agent.name || '')}" placeholder="Ex.: Licença ambiental" class="agent-name w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Agente / Órgão</label>
+                        <input type="text" value="${escapeHtml(agent.owner || '')}" placeholder="Ex.: Super Mata" class="agent-owner w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none">
+                    </div>
+                    <button type="button" class="remove-agent-row h-10 px-3 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                row.querySelector('.remove-agent-row')?.addEventListener('click', () => row.remove());
+                agentList.appendChild(row);
+            };
+
+            const updateCounters = () => {
+                const total = baseCount + getProjects().length;
+                if (countBadge) countBadge.textContent = String(total);
+                if (footerCount) {
+                    footerCount.innerHTML = `Mostrando <span class="font-medium text-gray-700">1</span> a <span class="font-medium text-gray-700">10</span> de <span class="font-medium text-gray-700">${total}</span> projetos`;
+                }
+            };
+
+            const renderProjectRow = (project) => {
+                const dependencies = Array.isArray(project.agents) ? project.agents.length : 0;
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-blue-50/30 transition-colors group bg-blue-50/40';
+                row.innerHTML = `
+                    <td class="p-4 text-center"><input type="checkbox" class="custom-checkbox"></td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-diagram-project"></i></div>
+                            <div>
+                                <p class="font-medium text-primary group-hover:text-blue-brand transition-colors cursor-pointer">${escapeHtml(project.name)}</p>
+                                <p class="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5"><i class="fa-solid fa-link text-gray-400"></i> ${dependencies} agentes condicionantes</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4"><span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">${escapeHtml(project.secretaria)}</span></td>
+                    <td class="py-3 px-4"><div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full border border-gray-200 bg-white text-gray-500 flex items-center justify-center"><i class="fa-solid fa-user text-xs"></i></div><span class="text-gray-700 text-sm truncate max-w-[120px]">${escapeHtml(project.responsavel || 'A definir')}</span></div></td>
+                    <td class="py-3 px-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-info-light text-info border border-blue-200"><span class="w-1.5 h-1.5 rounded-full bg-info"></span> Em Planejamento</span></td>
+                    <td class="py-3 px-4"><div class="flex items-center gap-3"><div class="progress-base"><div class="progress-fill bg-info" style="width: 0%;"></div></div><span class="text-xs font-medium text-gray-700 w-8 text-right">0%</span></div></td>
+                    <td class="py-3 px-4"><div class="text-gray-700">${escapeHtml(formatDate(project.prazo))}</div></td>
+                    <td class="py-3 px-4"><div class="text-gray-700 font-medium">${escapeHtml(project.orcamento || 'R$ 0,00')}</div></td>
+                    <td class="py-3 px-4 text-right"><button class="p-1.5 text-gray-400 hover:text-primary rounded-md hover:bg-gray-100 transition-colors"><i class="fa-solid fa-ellipsis"></i></button></td>
+                `;
+                tableBody.prepend(row);
+            };
+
+            const resetForm = () => {
+                form.reset();
+                agentList.innerHTML = '';
+                createAgentRow();
+            };
+
+            const openModal = () => {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            };
+            const closeModal = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            };
+
+            openBtn.addEventListener('click', openModal);
+            closeBtn?.addEventListener('click', () => {
+                closeModal();
+                resetForm();
+            });
+            cancelBtn?.addEventListener('click', () => {
+                closeModal();
+                resetForm();
+            });
+            addAgentRowBtn?.addEventListener('click', () => createAgentRow());
+            saveBtn?.setAttribute('type', 'submit');
+
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    closeModal();
+                    resetForm();
+                }
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeModal();
+                    resetForm();
+                }
+            });
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const name = normalize(nameInput?.value);
+                if (!name) {
+                    nameInput?.focus();
+                    return;
+                }
+
+                const project = {
+                    id: `admin-${Date.now()}`,
+                    name,
+                    secretaria: normalize(secretariaSelect?.value) || 'Não informada',
+                    responsavel: normalize(responsavelInput?.value),
+                    prazo: normalize(prazoInput?.value),
+                    orcamento: normalize(orcamentoInput?.value),
+                    descricao: normalize(descricaoInput?.value),
+                    agents: [...document.querySelectorAll('.agent-row-admin')]
+                        .map((row) => ({
+                            name: normalize(row.querySelector('.agent-name')?.value),
+                            owner: normalize(row.querySelector('.agent-owner')?.value),
+                        }))
+                        .filter((agent) => agent.name || agent.owner),
+                };
+
+                const projects = getProjects();
+                projects.unshift(project);
+                setProjects(projects);
+                renderProjectRow(project);
+                updateCounters();
+                closeModal();
+                resetForm();
+            });
+
+            resetForm();
+            getProjects().forEach(renderProjectRow);
+            updateCounters();
+        })();
+    </script>
 </body>
 </html>

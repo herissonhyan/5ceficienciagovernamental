@@ -19,7 +19,6 @@
       dashboard: "4-Gestão Projetos - Dashboard Es.html",
       portfolio: "5-Gestão Projetos - Portfólio de.html",
       details: "6-Gestão Projetos - Detalhes do.html",
-      dependencies: "7-Gestão Projetos - Dependências.html",
       execution: "8-Gestão Projetos - Execução (Ti.html",
       alerts: "9-Gestão Projetos - Central de A.html",
     },
@@ -68,35 +67,45 @@
   }
 
   function attachLogout() {
-    document
-      .querySelectorAll("button, a")
-      .forEach((element) => {
-        if (element.dataset.logoutBound === "true") return;
-        const hasLogoutIcon = element.querySelector(".fa-arrow-right-from-bracket");
-        const text = (element.textContent || "").trim();
-        const isLogoutText = text === "Sair" || text === "Logout";
-        if (!hasLogoutIcon && !isLogoutText) return;
+    document.querySelectorAll("button, a").forEach((element) => {
+      if (element.dataset.logoutBound === "true") return;
+      const hasLogoutIcon = element.querySelector(".fa-arrow-right-from-bracket");
+      const text = (element.textContent || "").trim();
+      const isLogoutText = text === "Sair" || text === "Logout";
+      if (!hasLogoutIcon && !isLogoutText) return;
 
-        element.dataset.logoutBound = "true";
-        element.addEventListener("click", (event) => {
-          event.preventDefault();
-          clearSession();
-          goTo(LOGIN_PAGE);
-        });
+      element.dataset.logoutBound = "true";
+      element.addEventListener("click", (event) => {
+        event.preventDefault();
+        clearSession();
+        goTo(LOGIN_PAGE);
       });
+    });
   }
 
   function wireSidebar(role) {
     const suite = getSuite(role);
     if (!suite) return;
 
-    const routes = [
-      suite.dashboard,
-      suite.portfolio,
-      suite.dependencies,
-      suite.execution,
-      suite.alerts,
-    ];
+    document.querySelectorAll(".sidebar-item").forEach((item) => {
+      const text = (item.textContent || "").trim();
+      const title = (item.getAttribute("title") || "").trim();
+      const isDependencies = text === "Dependências" || title === "Dependências";
+      if (role === "admin" && isDependencies) {
+        item.closest("li")?.remove();
+      }
+    });
+
+    const routes =
+      role === "admin"
+        ? [suite.dashboard, suite.portfolio, suite.execution, suite.alerts]
+        : [
+            suite.dashboard,
+            suite.portfolio,
+            suite.dependencies,
+            suite.execution,
+            suite.alerts,
+          ];
 
     document.querySelectorAll(".sidebar-item").forEach((item, index) => {
       if (index < routes.length && item.tagName === "A") {
@@ -109,7 +118,7 @@
     const suite = getSuite(role);
     if (!suite) return;
 
-    const viewAllLink = document.querySelector('a.text-sm.font-medium.text-blue-brand');
+    const viewAllLink = document.querySelector("a.text-sm.font-medium.text-blue-brand");
     if (viewAllLink) {
       viewAllLink.setAttribute("href", suite.portfolio);
     }
@@ -144,6 +153,14 @@
     }
     if (session.role !== role) {
       redirectToRoleHome(session.role);
+      return null;
+    }
+    if (
+      role === "admin" &&
+      window.location.pathname.includes("7-Gest") &&
+      window.location.pathname.includes("Depend")
+    ) {
+      redirectToRoleHome(role);
       return null;
     }
     wireSidebar(role);
