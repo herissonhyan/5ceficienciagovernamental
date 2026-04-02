@@ -9,7 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfólio de Projetos - Recursos Hídricos - 5C eficiencia governamental</title>
+    <title>Novo Projeto Hídrico - 5C eficiencia governamental</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
     <script>
@@ -117,9 +117,53 @@
             height: 100%;
             border-radius: 9999px;
         }
+        .new-project-page main {
+            display: none !important;
+        }
+        .new-project-page #project-specifics-backdrop,
+        .new-project-page #project-specifics-drawer {
+            display: none !important;
+        }
+        .new-project-page #new-project-modal-recursos {
+            position: relative !important;
+            inset: auto !important;
+            background: #F8FAFC !important;
+            display: block !important;
+            flex: 1 1 auto;
+            min-width: 0;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 0;
+            z-index: auto;
+        }
+        .new-project-page #new-project-modal-recursos > div {
+            width: 100%;
+            max-width: none !important;
+            min-height: 100vh;
+            border-radius: 0;
+            box-shadow: none;
+            border: 0;
+            background: #F8FAFC;
+            overflow: visible;
+        }
+        .new-project-page #new-project-modal-recursos > div > .border-b {
+            border-bottom: 1px solid #E5E7EB;
+            padding: 1.5rem 2rem;
+            background: #FFFFFF;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .new-project-page #close-new-project-modal-recursos {
+            display: none;
+        }
+        .new-project-page #new-project-modal-recursos form {
+            background: transparent;
+            padding: 1.5rem 2rem 2rem;
+        }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden bg-tertiary text-secondary">
+<body class="new-project-page flex h-screen overflow-hidden bg-tertiary text-secondary">
 
     <!-- Sidebar -->
     <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex h-full z-20 shadow-soft">
@@ -226,8 +270,8 @@
                         <i class="fa-solid fa-folder-open"></i>
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold text-primary leading-tight">Portfólio de Projetos</h1>
-                        <p class="text-xs text-gray-500">Gerencie, acompanhe e coordene as iniciativas da Secretaria de Recursos Hídricos.</p>
+                        <h1 class="text-xl font-bold text-primary leading-tight">Novo Projeto Hídrico</h1>
+                        <p class="text-xs text-gray-500">Cadastre uma nova iniciativa e monte o mapa de condicionantes em uma página dedicada.</p>
                     </div>
                 </div>
             </div>
@@ -251,9 +295,9 @@
                         <i class="fa-regular fa-bell"></i>
                         <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full border border-white"></span>
                     </button>
-                    <button id="open-new-project-modal-recursos" class="flex items-center gap-2 bg-blue-brand hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ml-2">
-                        <i class="fa-solid fa-plus"></i> Novo Projeto Hídrico
-                    </button>
+                    <a href="11-Recursos Hídricos - Portfólio.html" class="flex items-center gap-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ml-2">
+                        <i class="fa-solid fa-arrow-left"></i> Voltar ao Portfólio
+                    </a>
                 </div>
             </div>
         </header>
@@ -516,8 +560,9 @@
         <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-primary">Criar Novo Projeto Hídrico</h2>
-                    <p class="text-sm text-gray-500">Registre uma nova iniciativa da Secretaria de Recursos Hídricos.</p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-brand mb-2">Cadastro</p>
+                    <h2 class="text-2xl font-bold text-primary">Criar Novo Projeto Hídrico</h2>
+                    <p class="text-sm text-gray-500">Registre uma nova iniciativa da Secretaria de Recursos Hídricos em uma tela dedicada.</p>
                 </div>
                 <button id="close-new-project-modal-recursos" class="w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:text-primary hover:border-blue-200 transition-colors">
                     <i class="fa-solid fa-xmark"></i>
@@ -592,7 +637,7 @@
             const specificsBackdrop = document.getElementById('project-specifics-backdrop');
             const specificsCloseBtn = document.getElementById('close-project-specifics-drawer');
 
-            if (!modal || !openBtn || !form || !tableBody) return;
+            if (!modal || !form || !tableBody) return;
 
             const fields = form.querySelectorAll('input, select, textarea');
             const [nameInput, unidadeSelect, responsavelInput, prazoInput, orcamentoInput, descricaoInput] = fields;
@@ -1343,18 +1388,17 @@
                 modal.classList.remove('flex');
             };
 
-            openBtn.addEventListener('click', () => {
-                window.location.href = '16-Recursos Hídricos - Novo Projeto.html';
+            openBtn?.addEventListener('click', (event) => {
+                event.preventDefault();
+                window.location.href = '11-Recursos Hídricos - Portfólio.html';
             });
             closeBtn?.addEventListener('click', () => {
-                closeModal();
-                resetForm();
+                window.location.href = '11-Recursos Hídricos - Portfólio.html';
             });
             specificsCloseBtn?.addEventListener('click', closeSpecificsDrawer);
             specificsBackdrop?.addEventListener('click', closeSpecificsDrawer);
             cancelBtn?.addEventListener('click', () => {
-                closeModal();
-                resetForm();
+                window.location.href = '11-Recursos Hídricos - Portfólio.html';
             });
             saveBtn?.setAttribute('type', 'submit');
             nameInput?.addEventListener('input', () => {
@@ -1448,17 +1492,9 @@
                 builderCy.center();
             });
 
-            modal.addEventListener('click', (event) => {
-                if (event.target === modal) {
-                    closeModal();
-                    resetForm();
-                }
-            });
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape') {
-                    closeModal();
-                    resetForm();
-                    closeSpecificsDrawer();
+                    window.location.href = '11-Recursos Hídricos - Portfólio.html';
                 }
             });
 
@@ -1485,21 +1521,11 @@
                 const projects = getProjects();
                 projects.unshift(project);
                 setProjects(projects);
-                renderProjectRow(project);
-                updateCounters();
-                closeModal();
-                resetForm();
+                window.location.href = '11-Recursos Hídricos - Portfólio.html';
             });
 
             resetForm();
-            getProjects().forEach(renderProjectRow);
-            tableBody.querySelectorAll('tr').forEach((row) => {
-                const projectName = row.querySelector('p.font-medium.text-primary')?.textContent?.trim();
-                if (projectName) {
-                    attachSpecificTrigger(row, projectName);
-                }
-            });
-            updateCounters();
+            openModal();
         })();
     </script>
 </body>

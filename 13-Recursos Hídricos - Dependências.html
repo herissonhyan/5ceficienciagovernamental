@@ -519,6 +519,16 @@
                             }
                         },
                         {
+                            selector: 'node[type="owner_hub"]',
+                            style: {
+                                'shape': 'round-rectangle',
+                                'width': 78,
+                                'height': 38,
+                                'background-color': '#64748B',
+                                'border-color': '#CBD5E1'
+                            }
+                        },
+                        {
                             selector: 'edge',
                             style: {
                                 'width': 2,
@@ -541,6 +551,14 @@
                                 'text-background-opacity': 1,
                                 'text-background-color': '#111827',
                                 'text-background-padding': '2px'
+                            }
+                        },
+                        {
+                            selector: 'edge[type="owner_branch"]',
+                            style: {
+                                'line-style': 'dashed',
+                                'line-color': '#CBD5E1',
+                                'target-arrow-color': '#CBD5E1'
                             }
                         },
                         {
@@ -594,6 +612,314 @@
                 console.error("Cytoscape rendering error:", e);
                 document.getElementById('cy').innerHTML = '<div class="flex items-center justify-center h-full text-danger">Error loading graph visualization.</div>';
             }
+        });
+    </script>
+    <script>
+        window.addEventListener('load', function () {
+            const STORAGE_KEY = 'poc_portfolio_projects_recursos';
+            const filterControls = document.getElementById('filter-controls');
+            const activeNodeDetails = document.getElementById('active-node-details');
+            const emptyState = document.getElementById('empty-state');
+
+            const getStoredProjects = () => {
+                try {
+                    return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]');
+                } catch {
+                    return [];
+                }
+            };
+
+            const defaultGraph = {
+                id: 'default-bonifacio',
+                name: 'Sistema de Abastecimento e Tratamento de Água do Assentamento Bonifácio',
+                summary: 'Grafo base do projeto estruturante de abastecimento rural.',
+                graph: {
+                    nodes: [
+                        { id: 'principal', name: 'Sistema de Água / Assentamento Bonifácio', owner: 'Sesar', status: 'risk', type: 'project' },
+                        { id: 'topo', name: 'Análise Topográfica', owner: 'Secretaria de Infraestrutura', status: 'done', type: 'delivery' },
+                        { id: 'ante', name: 'Anteprojeto', owner: 'Escritório de Projetos', status: 'done', type: 'delivery' },
+                        { id: 'licenca', name: 'Licença Ambiental', owner: 'Super Mata', status: 'risk', type: 'delivery' },
+                        { id: 'contratos', name: 'Contratos', owner: 'Licitações', status: 'done', type: 'delivery' },
+                        { id: 'os', name: 'Ordem de Serviço', owner: 'Gabinete da Prefeita', status: 'delayed', type: 'delivery' },
+                        { id: 'monitora', name: 'Monitoramento e Fiscalização', owner: 'Secretaria de Infraestrutura', status: 'on_track', type: 'delivery' },
+                        { id: 'sesar', name: 'Gerenciamento de Processo', owner: 'Sesar', status: 'on_track', type: 'delivery' },
+                        { id: 'contas', name: 'Prestação de Contas', owner: 'Contabilidade e Controladoria', status: 'on_track', type: 'delivery' }
+                    ],
+                    edges: [
+                        { id: 'e1', source: 'topo', target: 'principal' },
+                        { id: 'e2', source: 'ante', target: 'principal' },
+                        { id: 'e3', source: 'licenca', target: 'principal' },
+                        { id: 'e4', source: 'contratos', target: 'principal' },
+                        { id: 'e5', source: 'os', target: 'principal' },
+                        { id: 'e6', source: 'monitora', target: 'principal' },
+                        { id: 'e7', source: 'sesar', target: 'principal' },
+                        { id: 'e8', source: 'contas', target: 'principal' }
+                    ]
+                }
+            };
+
+            const buildGraphCatalog = () => {
+                const stored = getStoredProjects()
+                    .filter((project) => project.graph?.nodes?.length)
+                    .map((project) => ({
+                        id: project.id,
+                        name: project.name,
+                        summary: project.descricao || 'Projeto criado na sessão atual.',
+                        graph: project.graph
+                    }));
+                return [defaultGraph, ...stored];
+            };
+
+            const slugifyGraphValue = (value) => String(value || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '') || 'grupo';
+            const getStatusRank = (status) => ({ delayed: 4, risk: 3, on_track: 2, done: 1 }[status] || 0);
+            const getAggregateStatus = (nodes) =>
+                (nodes || []).reduce((current, node) => (getStatusRank(node.status) > getStatusRank(current) ? node.status : current), 'done');
+            const buildGroupedGraph = (graph) => {
+                if (!graph?.nodes?.length) return { nodes: [], edges: [] };
+
+                const nodes = graph.nodes.map((node) => ({ ...node }));
+                const edges = (graph.edges || []).map((edge) => ({ ...edge, id: edge.id || `${edge.source}-${edge.target}` }));
+                const ownerBuckets = nodes
+                    .filter((node) => node.id !== 'principal' && node.owner)
+                    .reduce((acc, node) => {
+                        (acc[node.owner] ||= []).push(node);
+                        return acc;
+                    }, {});
+                const groupedOwners = new Map();
+
+                Object.entries(ownerBuckets).forEach(([owner, ownerNodes]) => {
+                    if (ownerNodes.length < 2) return;
+                    const taskIds = new Set(ownerNodes.map((node) => node.id));
+                    const relationBuckets = new Map();
+
+                    edges.forEach((edge) => {
+                        const sourceInside = taskIds.has(edge.source);
+                        const targetInside = taskIds.has(edge.target);
+                        if (sourceInside === targetInside) return;
+
+                        const relationKey = sourceInside
+                            ? `out:${edge.target}`
+                            : `in:${edge.source}`;
+                        const entry = relationBuckets.get(relationKey) || {
+                            direction: sourceInside ? 'out' : 'in',
+                            externalId: sourceInside ? edge.target : edge.source,
+                            taskIds: new Set(),
+                            edges: [],
+                        };
+                        entry.taskIds.add(sourceInside ? edge.source : edge.target);
+                        entry.edges.push(edge);
+                        relationBuckets.set(relationKey, entry);
+                    });
+
+                    const duplicateRelations = Array.from(relationBuckets.values()).filter((entry) => entry.taskIds.size > 1);
+                    if (!duplicateRelations.length) return;
+
+                    const hubId = `owner-group-${slugifyGraphValue(owner)}`;
+                    groupedOwners.set(owner, {
+                        hubId,
+                        ownerNodes,
+                        groupedEdgeIds: new Set(duplicateRelations.flatMap((entry) => entry.edges.map((edge) => edge.id))),
+                        branchTaskIds: new Set(duplicateRelations.flatMap((entry) => Array.from(entry.taskIds))),
+                        relationEdges: duplicateRelations.map((entry) =>
+                            entry.direction === 'out'
+                                ? {
+                                    id: `${hubId}-${entry.externalId}`,
+                                    source: hubId,
+                                    target: entry.externalId,
+                                    type: 'blocks',
+                                }
+                                : {
+                                    id: `${entry.externalId}-${hubId}`,
+                                    source: entry.externalId,
+                                    target: hubId,
+                                    type: 'blocks',
+                                }
+                        ),
+                    });
+
+                    nodes.push({
+                        id: hubId,
+                        name: owner,
+                        owner: owner,
+                        status: getAggregateStatus(ownerNodes),
+                        type: 'owner_hub',
+                    });
+                });
+
+                if (!groupedOwners.size) {
+                    return { nodes, edges };
+                }
+
+                const rewiredEdges = [];
+                const seenEdgeIds = new Set();
+                const pushEdge = (edge) => {
+                    const edgeId = edge.id || `${edge.source}-${edge.target}`;
+                    if (seenEdgeIds.has(edgeId)) return;
+                    seenEdgeIds.add(edgeId);
+                    rewiredEdges.push({ ...edge, id: edgeId });
+                };
+
+                edges.forEach((edge) => {
+                    const isGroupedDuplicate = Array.from(groupedOwners.values()).some((entry) => entry.groupedEdgeIds.has(edge.id));
+                    if (!isGroupedDuplicate) {
+                        pushEdge(edge);
+                    }
+                });
+
+                groupedOwners.forEach((entry) => {
+                    entry.relationEdges.forEach(pushEdge);
+                    entry.branchTaskIds.forEach((taskId) => {
+                        pushEdge({
+                            id: `${entry.hubId}-${taskId}`,
+                            source: entry.hubId,
+                            target: taskId,
+                            type: 'owner_branch',
+                        });
+                    });
+                });
+
+                return { nodes, edges: rewiredEdges };
+            };
+
+            const createSelector = (graphs) => {
+                if (!filterControls || document.getElementById('graph-selector-recursos')) return;
+                const container = document.createElement('div');
+                container.className = 'flex items-center gap-2';
+                container.innerHTML = `
+                    <span class="text-sm font-medium text-dark-muted">Grafo:</span>
+                    <select id="graph-selector-recursos" class="bg-dark-bg border border-dark-border text-dark-text text-sm rounded-lg focus:ring-primary focus:border-primary block w-72 p-2">
+                        ${graphs.map((graph) => `<option value="${graph.id}">${graph.name}</option>`).join('')}
+                    </select>
+                `;
+                filterControls.querySelector('.flex.items-center.gap-4.flex-wrap')?.prepend(container);
+            };
+
+            const renderDetails = (graph, nodeData) => {
+                if (!activeNodeDetails) return;
+                emptyState?.classList.add('hidden');
+                activeNodeDetails.classList.remove('hidden');
+                const titleEl = activeNodeDetails.querySelector('h2.text-xl');
+                if (titleEl) {
+                    titleEl.textContent = `${nodeData.name}`;
+                }
+                const statusEl = activeNodeDetails.querySelector('.grid .bg-dark-bg:nth-child(1) p.text-sm');
+                const delayEl = activeNodeDetails.querySelector('.grid .bg-dark-bg:nth-child(2) p.text-sm');
+                const progressEl = activeNodeDetails.querySelector('.grid .bg-dark-bg:nth-child(3) p.text-sm');
+                const ownerEl = activeNodeDetails.querySelector('.grid .bg-dark-bg:nth-child(4) p.text-xs.font-medium');
+                if (statusEl) statusEl.textContent = nodeData.status === 'done' ? 'Concluído' : nodeData.status === 'delayed' ? 'Atrasado' : nodeData.status === 'on_track' ? 'No Prazo' : 'Em risco';
+                if (delayEl) delayEl.textContent = nodeData.status === 'delayed' ? '9 dias' : '0 dia';
+                if (progressEl) progressEl.textContent = nodeData.type === 'project' ? `${Math.max(15, (graph.graph.nodes.length - 1) * 8)}%` : (nodeData.status === 'done' ? '100%' : nodeData.status === 'on_track' ? '70%' : nodeData.status === 'delayed' ? '45%' : '55%');
+                if (ownerEl) ownerEl.textContent = nodeData.owner || 'Órgão não informado';
+
+                const impactTitle = activeNodeDetails.querySelector('.space-y-4.mb-6 h4');
+                if (impactTitle) impactTitle.textContent = 'Conexões do Nó';
+                const blocksBy = graph.graph.edges.filter((edge) => edge.target === nodeData.id).map((edge) => graph.graph.nodes.find((node) => node.id === edge.source)).filter(Boolean);
+                const blocks = graph.graph.edges.filter((edge) => edge.source === nodeData.id).map((edge) => graph.graph.nodes.find((node) => node.id === edge.target)).filter(Boolean);
+                const sections = activeNodeDetails.querySelectorAll('.space-y-4.mb-6 > div');
+                if (sections[0]) {
+                    sections[0].querySelector('p.text-xs') && (sections[0].querySelector('p.text-xs').textContent = `Conecta com (${blocks.length}):`);
+                    const container = sections[0].querySelector('.space-y-2');
+                    if (container) {
+                        container.innerHTML = (blocks.length ? blocks : [{ name: 'Nenhuma ligação de saída', owner: '' }]).map((node) => `
+                            <div class="flex items-center justify-between p-2 bg-dark-bg rounded-lg border border-dark-border border-l-2 border-l-primary">
+                                <div class="flex items-center gap-2 overflow-hidden">
+                                    <i class="fa-solid fa-circle-nodes text-dark-muted text-xs"></i>
+                                    <p class="text-xs font-medium text-dark-text truncate">${node.name}${node.owner ? ` • ${node.owner}` : ''}</p>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+                if (sections[1]) {
+                    sections[1].querySelector('p.text-xs') && (sections[1].querySelector('p.text-xs').textContent = `Recebe ligação de (${blocksBy.length}):`);
+                    const container = sections[1].querySelector('.flex.items-center.justify-between');
+                    if (container) {
+                        container.outerHTML = (blocksBy.length ? blocksBy : [{ name: 'Nenhuma ligação de entrada', owner: '' }]).map((node) => `
+                            <div class="flex items-center justify-between p-2 bg-dark-bg rounded-lg border border-dark-border border-l-2 border-l-success">
+                                <div class="flex items-center gap-2 overflow-hidden">
+                                    <i class="fa-solid fa-link text-dark-muted text-xs"></i>
+                                    <p class="text-xs font-medium text-dark-text truncate">${node.name}${node.owner ? ` • ${node.owner}` : ''}</p>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            };
+
+            const renderGraph = (graph) => {
+                if (!window.cy || !graph?.graph) return;
+                const groupedGraph = {
+                    ...graph,
+                    graph: buildGroupedGraph(graph.graph),
+                };
+                const elements = [
+                    ...groupedGraph.graph.nodes.map((node) => ({
+                        data: {
+                            id: node.id,
+                            name: node.type === 'owner_hub'
+                                ? `${node.name}\nÓrgão responsável`
+                                : `${node.name}${node.type === 'project' ? '' : `\n${node.owner || 'Órgão não informado'}`}${node.dueDate ? `\n${node.dueDate}` : ''}`,
+                            status: node.status || 'risk',
+                            type: node.type || 'delivery'
+                        }
+                    })),
+                    ...groupedGraph.graph.edges.map((edge) => ({
+                        data: {
+                            id: edge.id || `${edge.source}-${edge.target}`,
+                            source: edge.source,
+                            target: edge.target,
+                            type: edge.type || 'blocks'
+                        }
+                    }))
+                ];
+                window.cy.elements().remove();
+                window.cy.add(elements);
+                window.cy.layout({
+                    name: 'cose',
+                    animate: false,
+                    padding: 50,
+                    nodeRepulsion: 900000,
+                    idealEdgeLength: 140
+                }).run();
+
+                const title = document.querySelector('header h2.text-sm');
+                if (title) title.textContent = graph.name;
+                const firstNode = groupedGraph.graph.nodes[0];
+                if (firstNode) {
+                    renderDetails(groupedGraph, firstNode);
+                }
+
+                if (!window.__graphDetailsBound) {
+                    window.__graphDetailsBound = true;
+                    window.cy.on('tap', 'node', function (evt) {
+                        const tappedId = evt.target.id();
+                        const activeGraph = window.__currentDependencyGraph;
+                        const nodeData = activeGraph?.graph?.nodes?.find((node) => node.id === tappedId);
+                        if (nodeData) renderDetails(activeGraph, nodeData);
+                    });
+                }
+
+                window.__currentDependencyGraph = groupedGraph;
+            };
+
+            const graphs = buildGraphCatalog();
+            createSelector(graphs);
+            const selector = document.getElementById('graph-selector-recursos');
+            if (selector) {
+                selector.addEventListener('change', () => {
+                    const selected = graphs.find((graph) => graph.id === selector.value) || graphs[0];
+                    renderGraph(selected);
+                });
+            }
+
+            setTimeout(() => {
+                renderGraph(graphs[0]);
+            }, 50);
         });
     </script>
     <script>
